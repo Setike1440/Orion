@@ -7,6 +7,8 @@ import { NotificationBell } from './NotificationBell';
 import { supabase } from '../lib/supabase';
 import { Language, translations } from '../contexts/LanguageContext';
 
+import { sortGamesAlphanumeric } from '../lib/gameUtils';
+
 export const Navbar = () => {
   const { user, profile, signOut, openAuthModal } = useAuth();
   const { t, language, setLanguage } = useLanguage();
@@ -85,10 +87,10 @@ export const Navbar = () => {
       .from('games')
       .select('id, title, cover_url, category:categories(name)')
       .ilike('title', `%${searchTerm}%`)
-      .limit(5);
+      .limit(10);
     
     if (data) {
-      setSearchResults(data);
+      setSearchResults(sortGamesAlphanumeric(data));
       setShowResults(true);
     }
   };
@@ -202,7 +204,7 @@ export const Navbar = () => {
                       <User className="w-3.5 h-3.5 text-gray-300" />
                     </div>
                     <span className="text-xs sm:text-sm font-medium text-gray-200 truncate max-w-[100px]">
-                      {profile?.email?.split('@')[0] || 'Usuário'}
+                      {profile?.username || profile?.email?.split('@')[0] || 'Usuário'}
                     </span>
                   </button>
                   <div className="absolute right-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50">

@@ -5,6 +5,7 @@ import { User } from '@supabase/supabase-js';
 type Profile = {
   id: string;
   email: string;
+  username?: string;
   role: 'user' | 'admin';
 };
 
@@ -17,6 +18,8 @@ type AuthContextType = {
   openAuthModal: (tab?: 'login' | 'register') => void;
   closeAuthModal: () => void;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
+  updateProfile: (updated: Partial<Profile>) => void;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -28,6 +31,8 @@ const AuthContext = createContext<AuthContextType>({
   openAuthModal: () => {},
   closeAuthModal: () => {},
   signOut: async () => {},
+  refreshProfile: async () => {},
+  updateProfile: () => {},
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -106,23 +111,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               .maybeSingle();
               
             if (!insertError && newProfile) {
-              setProfile(newProfile as Profile);
+              setProfile(applyLocalOverrides(newProfile as Profile));
               return;
             }
           } catch (e) {
             console.warn('Profile insert error:', e);
           }
         }
-        setProfile({ id: userId, email: email, role: 'user' });
+        setProfile(applyLocalOverrides({ id: userId, email: email, role: 'user' }));
       } else {
-        setProfile(data as Profile);
+        setProfile(applyLocalOverrides(data as Profile));
       }
     } catch (error) {
       console.warn('Unexpected error fetching profile:', error);
-      setProfile({ id: userId, email: userEmail || '', role: 'user' });
+      setProfile(applyLocalOverrides({ id: userId, email: userEmail || '', role: 'user' }));
     } finally {
       setLoading(false);
     }
+  };
+
+  const applyLocalOverrides = (prof: Profile): Profile => {
+    try {
+      const localUsernames = JSON.parse(localStorage.getItem('custom_usernames') || '{}');
+      if (prof.id && localUsernames[prof.id]) {
+        return { ...prof, username: localUsernames[prof.id] };
+      }
+    } catch (e) {}
+    return prof;
+  };
+
+  const refreshProfile = async () => {
+    if (user) {
+      await fetchProfile(user.id, user.email);
+    }
+  };
+
+  const updateProfile = (updated: Partial<Profile>) => {
+    setProfile(prev => prev ? { ...prev, ...updated } : null);
   };
 
   const signOut = async () => {
@@ -130,7 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, isAuthModalOpen, authModalTab, openAuthModal, closeAuthModal, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, isAuthModalOpen, authModalTab, openAuthModal, closeAuthModal, signOut, refreshProfile, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

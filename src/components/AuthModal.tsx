@@ -10,6 +10,7 @@ export const AuthModal: React.FC = () => {
 
   const [tab, setTab] = useState<'login' | 'register'>(authModalTab);
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -60,7 +61,7 @@ export const AuthModal: React.FC = () => {
         if (data.user) {
           // Try creating profile
           await supabase.from('profiles').insert([
-            { id: data.user.id, email: data.user.email, role: 'user' }
+            { id: data.user.id, email: data.user.email, username: username.trim() || email.split('@')[0], role: 'user' }
           ]);
         }
 
@@ -154,6 +155,25 @@ export const AuthModal: React.FC = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-3.5">
+          {tab === 'register' && (
+            <div>
+              <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+                Nome de usuário
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="SeuNomeOuNick"
+                  required
+                  className="w-full bg-[#0a0b0e] border border-[#20222c] focus:border-[#268FFF] focus:ring-1 focus:ring-[#268FFF]/20 rounded-xl py-2.5 pl-9 pr-4 text-xs text-white focus:outline-none transition-all placeholder-gray-600"
+                />
+                <Gamepad2 className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
               {t('email') || 'E-mail'}

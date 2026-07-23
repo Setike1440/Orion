@@ -5,6 +5,7 @@ import { Heart, Sparkles } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Breadcrumb } from '../components/Breadcrumb';
+import { sortGamesAlphanumeric } from '../lib/gameUtils';
 
 export const Favorites = () => {
   const { user } = useAuth();
@@ -52,7 +53,7 @@ export const Favorites = () => {
           isFavorite: true
         }));
 
-      setGames(favoriteGames as Game[]);
+      setGames(sortGamesAlphanumeric(favoriteGames as Game[]) as Game[]);
     } catch (error) {
       console.error('Error fetching favorites:', error);
     } finally {

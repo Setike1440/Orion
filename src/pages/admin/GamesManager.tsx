@@ -1,10 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Plus, Edit2, Trash2, Search, X, Gamepad2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, X, Gamepad2, UserPlus, Key, User } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { ConfirmModal, AdminToast } from '../../components/admin/AdminModal';
+import { usePageTitle } from '../../hooks/usePageTitle';
+import { sortGamesAlphanumeric } from '../../lib/gameUtils';
+
+interface GameAccount {
+  id: string;
+  name: string;
+  steam_username: string;
+  steam_password: string;
+}
 
 export const GamesManager = () => {
+  usePageTitle('Gerenciar Jogos');
   const { user } = useAuth();
   const { t } = useLanguage();
   const [games, setGames] = useState<any[]>([]);
@@ -13,12 +24,29 @@ export const GamesManager = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingGameId, setEditingGameId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+
+  // Toasts and Popups
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
+  const [confirmModalState, setConfirmModalState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     cover_url: '',
-    steam_username: '',
-    steam_password: '',
+    accounts: [
+      { id: '1', name: 'Conta Principal', steam_username: '', steam_password: '' }
+    ] as GameAccount[],
     category_ids: [] as string[],
     images: '',
     requirements: '',
@@ -62,7 +90,7 @@ export const GamesManager = () => {
           };
         });
 
-      setGames(formattedGames);
+      setGames(sortGamesAlphanumeric(formattedGames));
     } catch (error) {
       console.error('Error fetching games:', error);
     } finally {
@@ -90,8 +118,9 @@ export const GamesManager = () => {
       title: '', 
       description: '', 
       cover_url: '', 
-      steam_username: '', 
-      steam_password: '', 
+      accounts: [
+        { id: Date.now().toString(), name: 'Conta Principal', steam_username: '', steam_password: '' }
+      ], 
       category_ids: [], 
       images: '', 
       requirements: '', 
@@ -109,13 +138,26 @@ export const GamesManager = () => {
     } catch (e) {}
     const custom = localHighlights[game.id];
 
+    let accountsList: GameAccount[] = [];
+    if (game.accounts && Array.isArray(game.accounts) && game.accounts.length > 0) {
+      accountsList = game.accounts;
+    } else {
+      accountsList = [
+        {
+          id: Date.now().toString(),
+          name: 'Conta Principal',
+          steam_username: game.steam_username || '',
+          steam_password: game.steam_password || ''
+        }
+      ];
+    }
+
     setEditingGameId(game.id);
     setFormData({
       title: game.title || '',
       description: game.description || '',
       cover_url: game.cover_url || '',
-      steam_username: game.steam_username || '',
-      steam_password: game.steam_password || '',
+      accounts: accountsList,
       category_ids: Array.isArray(game.category_ids) ? game.category_ids : game.category_id ? [game.category_id] : [],
       images: Array.isArray(game.images) ? game.images.join('\n') : game.images || '',
       requirements: game.requirements || '',
@@ -126,18 +168,49 @@ export const GamesManager = () => {
     setIsModalOpen(true);
   };
 
+  const handleAddAccountField = () => {
+    setFormData(prev => ({
+      ...prev,
+      accounts: [
+        ...prev.accounts,
+        { id: Date.now().toString(), name: `Conta ${prev.accounts.length + 1}`, steam_username: '', steam_password: '' }
+      ]
+    }));
+  };
+
+  const handleRemoveAccountField = (id: string) => {
+    if (formData.accounts.length <= 1) {
+      setToastMessage('O jogo precisa ter ao menos uma conta.');
+      setToastType('error');
+      return;
+    }
+    setFormData(prev => ({
+      ...prev,
+      accounts: prev.accounts.filter(acc => acc.id !== id)
+    }));
+  };
+
+  const handleAccountChange = (id: string, field: keyof GameAccount, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      accounts: prev.accounts.map(acc => acc.id === id ? { ...acc, [field]: value } : acc)
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const primaryCatId = formData.category_ids && formData.category_ids.length > 0 ? formData.category_ids[0] : null;
       const imagesList = formData.images ? formData.images.split('\n').map(u => u.trim()).filter(Boolean) : [];
+      const primaryAccount = formData.accounts[0] || { steam_username: '', steam_password: '' };
 
       const basePayload: any = {
         title: formData.title,
         description: formData.description,
         cover_url: formData.cover_url,
-        steam_username: formData.steam_username,
-        steam_password: formData.steam_password,
+        steam_username: primaryAccount.steam_username,
+        steam_password: primaryAccount.steam_password,
+        accounts: formData.accounts,
         requirements: formData.requirements,
         images: imagesList,
         category_id: primaryCatId,
@@ -159,27 +232,32 @@ export const GamesManager = () => {
       let res = await attemptSave(currentPayload);
 
       if (res.error) {
-        delete currentPayload.admin_highlight_game;
-        delete currentPayload.is_most_played;
-        delete currentPayload.highlight_text;
+        delete currentPayload.accounts;
         res = await attemptSave(currentPayload);
 
         if (res.error) {
-          delete currentPayload.is_highlight;
+          delete currentPayload.admin_highlight_game;
+          delete currentPayload.is_most_played;
+          delete currentPayload.highlight_text;
           res = await attemptSave(currentPayload);
-        }
 
-        if (res.error) {
-          const minimalPayload = {
-            title: formData.title,
-            description: formData.description,
-            cover_url: formData.cover_url,
-            steam_username: formData.steam_username,
-            steam_password: formData.steam_password,
-            requirements: formData.requirements,
-            category_id: primaryCatId
-          };
-          res = await attemptSave(minimalPayload);
+          if (res.error) {
+            delete currentPayload.is_highlight;
+            res = await attemptSave(currentPayload);
+          }
+
+          if (res.error) {
+            const minimalPayload = {
+              title: formData.title,
+              description: formData.description,
+              cover_url: formData.cover_url,
+              steam_username: primaryAccount.steam_username,
+              steam_password: primaryAccount.steam_password,
+              requirements: formData.requirements,
+              category_id: primaryCatId
+            };
+            res = await attemptSave(minimalPayload);
+          }
         }
       }
 
@@ -203,51 +281,58 @@ export const GamesManager = () => {
 
       await logAction(editingGameId ? 'UPDATE_GAME' : 'CREATE_GAME', { title: formData.title });
 
+      setToastMessage(editingGameId ? `Jogo "${formData.title}" atualizado com sucesso!` : `Jogo "${formData.title}" criado com sucesso!`);
+      setToastType('success');
       setIsModalOpen(false);
       setEditingGameId(null);
       fetchGames();
     } catch (error: any) {
-      alert('Erro ao salvar jogo: ' + error.message);
+      setToastMessage('Erro ao salvar jogo: ' + error.message);
+      setToastType('error');
     }
   };
 
-  const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Tem certeza que deseja excluir o jogo "${title}"? Esta ação não pode ser desfeita.`)) return;
-    
-    // Always mark locally as deleted so it immediately disappears from UI
-    try {
-      const currentDeleted = JSON.parse(localStorage.getItem('deleted_game_ids') || '[]');
-      if (!currentDeleted.includes(id)) {
-        currentDeleted.push(id);
-        localStorage.setItem('deleted_game_ids', JSON.stringify(currentDeleted));
+  const handleDelete = (id: string, title: string) => {
+    setConfirmModalState({
+      isOpen: true,
+      title: 'Excluir Jogo',
+      message: `Tem certeza que deseja excluir o jogo "${title}"? Esta ação não pode ser desfeita.`,
+      onConfirm: async () => {
+        setConfirmModalState(prev => ({ ...prev, isOpen: false }));
+
+        try {
+          const currentDeleted = JSON.parse(localStorage.getItem('deleted_game_ids') || '[]');
+          if (!currentDeleted.includes(id)) {
+            currentDeleted.push(id);
+            localStorage.setItem('deleted_game_ids', JSON.stringify(currentDeleted));
+          }
+
+          const currentLocal = JSON.parse(localStorage.getItem('custom_game_highlights') || '{}');
+          delete currentLocal[id];
+          localStorage.setItem('custom_game_highlights', JSON.stringify(currentLocal));
+        } catch (e) {}
+
+        setGames(prev => prev.filter(g => g.id !== id));
+
+        try {
+          try {
+            await supabase.from('favorites').delete().eq('game_id', id);
+          } catch (e) {}
+
+          const { error } = await supabase.from('games').delete().eq('id', id);
+          if (error) {
+            console.warn('Supabase delete game response:', error);
+          }
+          
+          await logAction('DELETE_GAME', { game_id: id, title });
+          setToastMessage(`Jogo "${title}" excluído com sucesso!`);
+          setToastType('success');
+        } catch (error: any) {
+          setToastMessage(`Jogo "${title}" excluído com sucesso!`);
+          setToastType('success');
+        }
       }
-
-      const currentLocal = JSON.parse(localStorage.getItem('custom_game_highlights') || '{}');
-      delete currentLocal[id];
-      localStorage.setItem('custom_game_highlights', JSON.stringify(currentLocal));
-    } catch (e) {}
-
-    setGames(prev => prev.filter(g => g.id !== id));
-
-    try {
-      // First attempt to delete from favorites if foreign key is not cascading
-      try {
-        await supabase.from('favorites').delete().eq('game_id', id);
-      } catch (e) {
-        console.warn('Error deleting favorites:', e);
-      }
-
-      const { error } = await supabase.from('games').delete().eq('id', id);
-      if (error) {
-        console.warn('Supabase delete game response:', error);
-      }
-      
-      await logAction('DELETE_GAME', { game_id: id, title });
-      alert(`Jogo "${title}" excluído com sucesso!`);
-    } catch (error: any) {
-      console.warn('Error deleting game in Supabase:', error);
-      alert(`Jogo "${title}" excluído com sucesso!`);
-    }
+    });
   };
 
   const filteredGames = games.filter(g => 
@@ -257,6 +342,15 @@ export const GamesManager = () => {
 
   return (
     <div className="space-y-6">
+      <AdminToast message={toastMessage} type={toastType} onClose={() => setToastMessage(null)} />
+      <ConfirmModal
+        isOpen={confirmModalState.isOpen}
+        title={confirmModalState.title}
+        message={confirmModalState.message}
+        onConfirm={confirmModalState.onConfirm}
+        onCancel={() => setConfirmModalState(prev => ({ ...prev, isOpen: false }))}
+      />
+
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-3">
@@ -300,17 +394,18 @@ export const GamesManager = () => {
               <tr>
                 <th className="px-6 py-3.5 font-semibold">{t('admin_table_cover')}</th>
                 <th className="px-6 py-3.5 font-semibold">{t('admin_table_category')}</th>
+                <th className="px-6 py-3.5 font-semibold">Contas</th>
                 <th className="px-6 py-3.5 font-semibold text-right">{t('admin_table_actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#1f212a]">
               {loading ? (
                 <tr>
-                  <td colSpan={3} className="px-6 py-8 text-center text-gray-500">Carregando jogos...</td>
+                  <td colSpan={4} className="px-6 py-8 text-center text-gray-500">Carregando jogos...</td>
                 </tr>
               ) : filteredGames.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="px-6 py-8 text-center text-gray-500">{t('admin_no_games')}</td>
+                  <td colSpan={4} className="px-6 py-8 text-center text-gray-500">{t('admin_no_games')}</td>
                 </tr>
               ) : (
                 filteredGames.map((game) => (
@@ -330,6 +425,12 @@ export const GamesManager = () => {
                       {game.category_ids && game.category_ids.length > 0 
                         ? game.category_ids.map((id: string) => categories.find(c => c.id === id)?.name).filter(Boolean).join(', ') 
                         : '-'}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#181920] border border-[#1f212a] text-gray-300 rounded-full text-xs font-semibold">
+                        <Key className="w-3.5 h-3.5 text-[#268FFF]" />
+                        {(game.accounts && Array.isArray(game.accounts) && game.accounts.length > 0) ? `${game.accounts.length} conta(s)` : '1 conta'}
+                      </span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -406,14 +507,79 @@ export const GamesManager = () => {
                     ))}
                   </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">{t('steam_user')}</label>
-                  <input type="text" required value={formData.steam_username} onChange={e => setFormData({...formData, steam_username: e.target.value})} className="w-full bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-3 text-xs text-white focus:border-[#268FFF] outline-none" />
+
+                {/* Multiple Accounts Section */}
+                <div className="md:col-span-2 bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                        <Key className="w-4 h-4 text-[#268FFF]" />
+                        Contas Steam do Jogo
+                      </h4>
+                      <p className="text-[11px] text-gray-500 mt-0.5">Cadastre uma ou mais contas para este jogo</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAddAccountField}
+                      className="bg-[#181920] hover:bg-[#20222c] border border-[#20222c] text-[#268FFF] font-semibold text-xs px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Adicionar Conta</span>
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {formData.accounts.map((acc, index) => (
+                      <div key={acc.id} className="bg-[#121318] border border-[#1f212a] p-3 rounded-xl space-y-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <input
+                            type="text"
+                            value={acc.name}
+                            onChange={(e) => handleAccountChange(acc.id, 'name', e.target.value)}
+                            placeholder={`Nome da Conta (ex: Conta ${index + 1})`}
+                            className="bg-[#0a0b0e] border border-[#1f212a] rounded-lg px-2.5 py-1 text-xs text-white font-semibold outline-none focus:border-[#268FFF] w-48"
+                          />
+                          {formData.accounts.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveAccountField(acc.id)}
+                              className="text-gray-500 hover:text-red-400 p-1 cursor-pointer"
+                              title="Remover esta conta"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[10px] text-gray-400 font-semibold uppercase mb-1">{t('steam_user')}</label>
+                            <input
+                              type="text"
+                              required
+                              value={acc.steam_username}
+                              onChange={(e) => handleAccountChange(acc.id, 'steam_username', e.target.value)}
+                              className="w-full bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-2.5 text-xs text-white focus:border-[#268FFF] outline-none"
+                              placeholder="steam_user"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-gray-400 font-semibold uppercase mb-1">{t('steam_pass')}</label>
+                            <input
+                              type="text"
+                              required
+                              value={acc.steam_password}
+                              onChange={(e) => handleAccountChange(acc.id, 'steam_password', e.target.value)}
+                              className="w-full bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-2.5 text-xs text-white focus:border-[#268FFF] outline-none"
+                              placeholder="steam_pass"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">{t('steam_pass')}</label>
-                  <input type="text" required value={formData.steam_password} onChange={e => setFormData({...formData, steam_password: e.target.value})} className="w-full bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-3 text-xs text-white focus:border-[#268FFF] outline-none" />
-                </div>
+
                 <div className="md:col-span-2 mt-2">
                   <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">{t('admin_images')}</label>
                   <textarea rows={3} value={formData.images} onChange={e => setFormData({...formData, images: e.target.value})} className="w-full bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-3 text-xs text-white focus:border-[#268FFF] outline-none" placeholder="Uma URL por linha..."></textarea>

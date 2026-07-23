@@ -7,6 +7,7 @@ import { ArrowLeft } from 'lucide-react';
 import { DEFAULT_CATEGORIES } from '../data/categoriesData';
 import { Breadcrumb } from '../components/Breadcrumb';
 import { Skeleton } from '../components/Skeleton';
+import { sortGamesAlphanumeric } from '../lib/gameUtils';
 
 export const CategoryPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -69,7 +70,7 @@ export const CategoryPage = () => {
           ...g,
           category: { name: catData.name }
         }));
-        setGames(mapped as unknown as Game[]);
+        setGames(sortGamesAlphanumeric(mapped as unknown as Game[]) as Game[]);
       }
     } catch (error) {
       console.error('Error fetching category:', error);

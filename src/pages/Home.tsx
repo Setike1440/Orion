@@ -6,6 +6,7 @@ import { Flame, Sparkles, Search, Gamepad2, LayoutGrid, ChevronLeft, ChevronRigh
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { DEFAULT_CATEGORIES } from '../data/categoriesData';
+import { sortGamesAlphanumeric } from '../lib/gameUtils';
 
 export const Home = () => {
   const { user } = useAuth();
@@ -281,8 +282,8 @@ export const Home = () => {
               <h2 className="text-lg font-semibold text-white tracking-tight">Resultados da busca</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {games.filter(g => g.title.toLowerCase().includes(searchTerm.toLowerCase())).length > 0 ? (
-                games.filter(g => g.title.toLowerCase().includes(searchTerm.toLowerCase())).map((game) => <GameCard key={game.id} game={game} />)
+              {sortGamesAlphanumeric(games.filter(g => g.title.toLowerCase().includes(searchTerm.toLowerCase()))).length > 0 ? (
+                sortGamesAlphanumeric(games.filter(g => g.title.toLowerCase().includes(searchTerm.toLowerCase()))).map((game) => <GameCard key={game.id} game={game} />)
               ) : (
                 <div className="col-span-full py-12 flex flex-col items-center justify-center text-gray-500 bg-[#121318] border border-[#1f212a] rounded-2xl">
                   <Sparkles className="w-7 h-7 mb-3 opacity-40 text-gray-400" />
@@ -492,7 +493,7 @@ export const Home = () => {
                 <h2 className="text-base sm:text-lg font-semibold text-white tracking-tight">{t('all_games')}</h2>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                {games.map((game) => <GameCard key={`all-${game.id}`} game={game} />)}
+                {sortGamesAlphanumeric(games).map((game) => <GameCard key={`all-${game.id}`} game={game} />)}
               </div>
             </div>
           </>
