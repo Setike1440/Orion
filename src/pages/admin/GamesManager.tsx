@@ -70,8 +70,10 @@ export const GamesManager = () => {
       if (error) throw error;
 
       let localHighlights: Record<string, any> = {};
+      let localAccounts: Record<string, any[]> = {};
       try {
         localHighlights = JSON.parse(localStorage.getItem('custom_game_highlights') || '{}');
+        localAccounts = JSON.parse(localStorage.getItem('custom_game_accounts') || '{}');
       } catch (e) {}
 
       let deletedIds: string[] = [];
@@ -83,8 +85,15 @@ export const GamesManager = () => {
         .filter((game: any) => !deletedIds.includes(game.id))
         .map((game: any) => {
           const custom = localHighlights[game.id];
+          const accs = (localAccounts[game.id] && Array.isArray(localAccounts[game.id]) && localAccounts[game.id].length > 0)
+            ? localAccounts[game.id]
+            : (game.accounts && Array.isArray(game.accounts) && game.accounts.length > 0)
+              ? game.accounts
+              : (game.steam_username ? [{ id: '1', name: 'Conta Principal', steam_username: game.steam_username, steam_password: game.steam_password }] : []);
+
           return {
             ...game,
+            accounts: accs,
             admin_highlight_game: custom?.is_most_played ?? game.admin_highlight_game ?? game.is_most_played ?? game.is_highlight,
             admin_highlight_text: custom?.highlight_text || game.highlight_text || game.admin_highlight_text,
             highlight_text: custom?.highlight_text || game.highlight_text || game.admin_highlight_text
@@ -351,6 +360,25 @@ export const GamesManager = () => {
     });
   };
 
+  const getGameCategoryName = (game: any) => {
+    const ids: string[] = Array.isArray(game.category_ids) && game.category_ids.length > 0 
+      ? game.category_ids 
+      : game.category_id 
+        ? [game.category_id] 
+        : [];
+
+    if (ids.length > 0) {
+      const names = ids
+        .map(id => categories.find(c => c.id === id || c.slug?.toLowerCase() === id?.toLowerCase() || c.name?.toLowerCase() === id?.toLowerCase())?.name)
+        .filter(Boolean);
+      if (names.length > 0) return names.join(', ');
+    }
+
+    if (game.category_name) return game.category_name;
+    if (game.category) return game.category;
+    return '-';
+  };
+
   const filteredGames = games.filter(g => 
     (g.title || '').toLowerCase().includes(search.toLowerCase()) ||
     (g.steam_username || '').toLowerCase().includes(search.toLowerCase())
@@ -424,50 +452,51 @@ export const GamesManager = () => {
                   <td colSpan={4} className="px-6 py-8 text-center text-gray-500">{t('admin_no_games')}</td>
                 </tr>
               ) : (
-                filteredGames.map((game) => (
-                  <tr key={game.id} className="hover:bg-[#181920]/60 transition-colors">
-                    <td className="px-6 py-4 flex items-center gap-4">
-                      <img src={game.cover_url} alt="" className="w-10 h-14 object-cover rounded-xl border border-[#1f212a]" />
-                      <div>
-                        <span className="font-semibold text-white block">{game.title}</span>
-                        {(game.admin_highlight_game || game.is_most_played || game.is_highlight) && (
-                          <span className="inline-block mt-1 text-[10px] text-[#FF0000] font-semibold bg-[#FF0000]/10 px-2 py-0.5 rounded-full border border-[#FF0000]/20">
-                            {game.highlight_text || 'Destaque'}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {game.category_ids && game.category_ids.length > 0 
-                        ? game.category_ids.map((id: string) => categories.find(c => c.id === id)?.name).filter(Boolean).join(', ') 
-                        : '-'}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#181920] border border-[#1f212a] text-gray-300 rounded-full text-xs font-semibold">
-                        <Key className="w-3.5 h-3.5 text-[#FF0000]" />
-                        {(game.accounts && Array.isArray(game.accounts) && game.accounts.length > 0) ? `${game.accounts.length} conta(s)` : '1 conta'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button 
-                          onClick={() => handleOpenEdit(game)} 
-                          className="p-2 rounded-xl bg-[#181920] border border-[#1f212a] text-gray-400 hover:text-[#FF0000] transition-all cursor-pointer" 
-                          title="Editar jogo"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(game.id, game.title)} 
-                          className="p-2 rounded-xl bg-[#181920] border border-[#1f212a] text-gray-400 hover:text-red-400 transition-all cursor-pointer" 
-                          title="Excluir jogo"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                filteredGames.map((game) => {
+                  const accCount = Array.isArray(game.accounts) && game.accounts.length > 0 ? game.accounts.length : 1;
+                  return (
+                    <tr key={game.id} className="hover:bg-[#181920]/60 transition-colors">
+                      <td className="px-6 py-4 flex items-center gap-4">
+                        <img src={game.cover_url} alt="" className="w-20 h-12 object-cover rounded-xl border border-[#1f212a] shrink-0" />
+                        <div>
+                          <span className="font-semibold text-white block">{game.title}</span>
+                          {(game.admin_highlight_game || game.is_most_played || game.is_highlight) && (
+                            <span className="inline-block mt-1 text-[10px] text-[#FF0000] font-semibold bg-[#FF0000]/10 px-2 py-0.5 rounded-full border border-[#FF0000]/20">
+                              {game.highlight_text || 'Destaque'}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-gray-300 font-medium">
+                        {getGameCategoryName(game)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#181920] border border-[#1f212a] text-gray-300 rounded-full text-xs font-semibold">
+                          <Key className="w-3.5 h-3.5 text-[#FF0000]" />
+                          {accCount} {accCount === 1 ? 'conta' : 'contas'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button 
+                            onClick={() => handleOpenEdit(game)} 
+                            className="p-2 rounded-xl bg-[#181920] border border-[#1f212a] text-gray-400 hover:text-[#FF0000] transition-all cursor-pointer" 
+                            title="Editar jogo"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(game.id, game.title)} 
+                            className="p-2 rounded-xl bg-[#181920] border border-[#1f212a] hover:bg-[#FF0000]/10 hover:border-[#FF0000]/30 text-[#FF0000] transition-all cursor-pointer" 
+                            title="Excluir jogo"
+                          >
+                            <Trash2 className="w-4 h-4 text-[#FF0000]" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

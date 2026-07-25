@@ -90,15 +90,7 @@ export const DashboardHome = () => {
         })}
       </div>
 
-      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-[#0d0e12] border border-[#1f212a] rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-sm">
-          <TrendingUp className="w-10 h-10 text-gray-500 mb-3" />
-          <h3 className="text-lg font-bold text-white mb-1.5">{t('admin_welcome_dashboard')}</h3>
-          <p className="text-gray-400 text-xs sm:text-sm max-w-sm leading-relaxed">
-            {t('admin_dashboard_desc')}
-          </p>
-        </div>
-
+      <div className="mt-8">
         <div className="bg-[#0d0e12] border border-[#1f212a] rounded-2xl p-6 shadow-sm">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">

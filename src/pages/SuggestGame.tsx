@@ -115,7 +115,7 @@ export const SuggestGame = () => {
                 <button
                   type="button"
                   onClick={() => openAuthModal('login')}
-                  className="bg-[#FF0000] hover:bg-[#e60000] text-white font-semibold text-xs sm:text-sm px-8 py-3.5 rounded-xl transition-all shadow-lg hover:shadow-[#FF0000]/20 cursor-pointer inline-flex items-center gap-2"
+                  className="bg-[#FF0000] hover:bg-[#e60000] text-white font-semibold text-xs sm:text-sm px-8 py-3.5 rounded-xl transition-all cursor-pointer inline-flex items-center gap-2"
                 >
                   <LogIn className="w-4 h-4" />
                   Entrar na Conta / Cadastrar-se

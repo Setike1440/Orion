@@ -145,10 +145,10 @@ export const NotificationBell = () => {
               <button
                 type="button"
                 onClick={clearNotifications}
-                className="text-[11px] font-medium text-gray-400 hover:text-[#FF0000] transition-colors cursor-pointer flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-[#1f212a]"
+                className="text-[11px] font-medium text-[#FF0000] hover:text-[#e60000] transition-colors cursor-pointer flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-[#FF0000]/10"
                 title={t('clear')}
               >
-                <Trash2 className="w-3 h-3 text-gray-400 hover:text-[#FF0000]" />
+                <Trash2 className="w-3 h-3 text-[#FF0000]" />
                 <span>{t('clear')}</span>
               </button>
             )}

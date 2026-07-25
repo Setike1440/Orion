@@ -423,10 +423,10 @@ export const UsersManager = () => {
                         </button>
                         <button 
                           onClick={() => handleDeleteUser(u)}
-                          className="p-1.5 rounded-lg bg-[#181920] hover:bg-red-500/10 border border-[#1f212a] hover:border-red-500/30 text-gray-400 hover:text-red-400 transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg bg-[#181920] hover:bg-[#FF0000]/10 border border-[#1f212a] hover:border-[#FF0000]/30 text-[#FF0000] transition-all cursor-pointer"
                           title="Excluir Usuário"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4 text-[#FF0000]" />
                         </button>
                       </div>
                     </td>
