@@ -104,7 +104,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
   social_twitter: 'https://x.com',
   social_youtube: 'https://youtube.com',
   support_email: 'suporte@sirius.com',
-  seo_title: 'Sirius - Contas Steam Gratuitas & Jogos em Destaque',
+  seo_title: 'Sirius',
   seo_description: 'Plataforma oficial de jogos e contas da comunidade Sirius.',
   primary_color: '#FF0000',
 };
@@ -206,7 +206,7 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   // 1. Initial Supabase Fetch & Realtime Subscription
   useEffect(() => {
     const sanitizeName = (val?: string) => {
-      if (!val || val.toLowerCase().includes('orion')) return 'Sirius';
+      if (!val || val.toLowerCase().includes('orion') || val.includes('Contas Steam')) return 'Sirius';
       return val;
     };
     const sanitizeLogo = (val?: string) => {
@@ -216,6 +216,10 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const sanitizeText = (val?: string) => {
       if (!val) return val;
       return val.replace(/Orion Games/g, 'Sirius').replace(/Orion/g, 'Sirius');
+    };
+    const sanitizeSeoTitle = (val?: string) => {
+      if (!val || val.toLowerCase().includes('orion') || val.includes('Contas Steam')) return 'Sirius';
+      return sanitizeText(val);
     };
 
     const fetchSiteSettings = async () => {
@@ -233,7 +237,7 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
               social_twitter: data.social_twitter || prev.social_twitter,
               social_youtube: data.social_youtube || prev.social_youtube,
               support_email: sanitizeText(data.support_email) || prev.support_email,
-              seo_title: sanitizeText(data.seo_title) || prev.seo_title,
+              seo_title: sanitizeSeoTitle(data.seo_title),
               seo_description: sanitizeText(data.seo_description) || prev.seo_description,
               primary_color: data.primary_color || prev.primary_color,
             }));
@@ -270,7 +274,7 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
               social_twitter: data.social_twitter || prev.social_twitter,
               social_youtube: data.social_youtube || prev.social_youtube,
               support_email: sanitizeText(data.support_email) || prev.support_email,
-              seo_title: sanitizeText(data.seo_title) || prev.seo_title,
+              seo_title: sanitizeSeoTitle(data.seo_title),
               seo_description: sanitizeText(data.seo_description) || prev.seo_description,
               primary_color: data.primary_color || prev.primary_color,
             }));
