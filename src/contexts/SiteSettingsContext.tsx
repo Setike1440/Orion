@@ -96,16 +96,16 @@ interface SiteSettingsContextType {
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
-  site_name: 'Orion Games',
-  logo_url: 'https://i.imgur.com/0a36M0M.png',
-  favicon_url: 'https://i.imgur.com/0a36M0M.png',
+  site_name: 'Sirius',
+  logo_url: 'https://i.ibb.co/zW1gzQRR/Logo.png',
+  favicon_url: 'https://i.ibb.co/zW1gzQRR/Logo.png',
   social_discord: 'https://discord.gg',
   social_instagram: 'https://instagram.com',
   social_twitter: 'https://x.com',
   social_youtube: 'https://youtube.com',
-  support_email: 'suporte@oriongames.com',
-  seo_title: 'Orion Games - Contas Steam Gratuitas & Jogos em Destaque',
-  seo_description: 'Plataforma oficial de jogos e contas da comunidade Orion.',
+  support_email: 'suporte@sirius.com',
+  seo_title: 'Sirius - Contas Steam Gratuitas & Jogos em Destaque',
+  seo_description: 'Plataforma oficial de jogos e contas da comunidade Sirius.',
   primary_color: '#FF0000',
 };
 
@@ -203,11 +203,11 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       });
   }, []);
 
-  // 1. Initial Supabase Fetch & Subscription
+  // 1. Initial Supabase Fetch & Realtime Subscription
   useEffect(() => {
     const fetchSiteSettings = async () => {
       try {
-        const { data, error } = await supabase.from('site_settings').select('*').eq('id', 1).single();
+        const { data, error } = await supabase.from('site_settings').select('*').eq('id', 1).maybeSingle();
         if (data && !error) {
           if (data.site_name) {
             setSettings(prev => ({
@@ -226,14 +226,53 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
             }));
           }
           if (data.maintenance) {
-            setMaintenance(data.maintenance);
+            setMaintenance(prev => ({ ...DEFAULT_MAINTENANCE, ...prev, ...data.maintenance }));
           }
           if (data.announcement) {
-            setAnnouncement(data.announcement);
+            setAnnouncement(prev => {
+              const merged = { ...DEFAULT_ANNOUNCEMENT, ...prev, ...data.announcement };
+              if (!merged.link_url) {
+                merged.link_url = prev.link_url || DEFAULT_ANNOUNCEMENT.link_url || '/sugerir-jogo';
+              }
+              return merged;
+            });
           }
         }
       } catch (e) {}
     };
+
+    const settingsChannel = supabase
+      .channel('site_settings_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, (payload) => {
+        if (payload.new) {
+          const data = payload.new as any;
+          if (data.site_name) {
+            setSettings(prev => ({
+              ...prev,
+              site_name: data.site_name || prev.site_name,
+              logo_url: data.logo_url || prev.logo_url,
+              favicon_url: data.favicon_url || prev.favicon_url,
+              social_discord: data.social_discord || prev.social_discord,
+              social_instagram: data.social_instagram || prev.social_instagram,
+              social_twitter: data.social_twitter || prev.social_twitter,
+              social_youtube: data.social_youtube || prev.social_youtube,
+              support_email: data.support_email || prev.support_email,
+              seo_title: data.seo_title || prev.seo_title,
+              seo_description: data.seo_description || prev.seo_description,
+              primary_color: data.primary_color || prev.primary_color,
+            }));
+          }
+          if (data.maintenance) setMaintenance(prev => ({ ...DEFAULT_MAINTENANCE, ...prev, ...data.maintenance }));
+          if (data.announcement) setAnnouncement(prev => {
+            const merged = { ...DEFAULT_ANNOUNCEMENT, ...prev, ...data.announcement };
+            if (!merged.link_url) {
+              merged.link_url = prev.link_url || DEFAULT_ANNOUNCEMENT.link_url || '/sugerir-jogo';
+            }
+            return merged;
+          });
+        }
+      })
+      .subscribe();
 
     const fetchBlockedIPs = async () => {
       try {
@@ -315,6 +354,10 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     fetchErrorLogs();
     fetchSecurityEvents();
     fetchAnalytics();
+
+    return () => {
+      supabase.removeChannel(settingsChannel);
+    };
   }, []);
 
   // Fetch and Monitor Active Sessions
@@ -449,24 +492,78 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const updated = { ...settings, ...newSettings };
     setSettings(updated);
     try {
-      await supabase.from('site_settings').upsert([{ id: 1, ...updated }]);
-    } catch (e) {}
+      await supabase.from('site_settings').upsert([{ 
+        id: 1, 
+        site_name: updated.site_name,
+        logo_url: updated.logo_url,
+        favicon_url: updated.favicon_url,
+        social_discord: updated.social_discord,
+        social_instagram: updated.social_instagram,
+        social_twitter: updated.social_twitter,
+        social_youtube: updated.social_youtube,
+        support_email: updated.support_email,
+        seo_title: updated.seo_title,
+        seo_description: updated.seo_description,
+        primary_color: updated.primary_color,
+        maintenance: maintenance,
+        announcement: announcement,
+        updated_at: new Date().toISOString()
+      }]);
+    } catch (e) {
+      console.error('Error updating settings:', e);
+    }
   };
 
   const updateMaintenance = async (newMaint: Partial<MaintenanceSettings>) => {
     const updated = { ...maintenance, ...newMaint };
     setMaintenance(updated);
     try {
-      await supabase.from('site_settings').upsert([{ id: 1, maintenance: updated }]);
-    } catch (e) {}
+      await supabase.from('site_settings').upsert([{ 
+        id: 1, 
+        site_name: settings.site_name,
+        logo_url: settings.logo_url,
+        favicon_url: settings.favicon_url,
+        social_discord: settings.social_discord,
+        social_instagram: settings.social_instagram,
+        social_twitter: settings.social_twitter,
+        social_youtube: settings.social_youtube,
+        support_email: settings.support_email,
+        seo_title: settings.seo_title,
+        seo_description: settings.seo_description,
+        primary_color: settings.primary_color,
+        maintenance: updated,
+        announcement: announcement,
+        updated_at: new Date().toISOString()
+      }]);
+    } catch (e) {
+      console.error('Error updating maintenance:', e);
+    }
   };
 
   const updateAnnouncement = async (newAnn: Partial<AnnouncementSettings>) => {
     const updated = { ...announcement, ...newAnn };
     setAnnouncement(updated);
     try {
-      await supabase.from('site_settings').upsert([{ id: 1, announcement: updated }]);
-    } catch (e) {}
+      await supabase.from('site_settings').upsert([{ 
+        id: 1, 
+        site_name: settings.site_name,
+        logo_url: settings.logo_url,
+        favicon_url: settings.favicon_url,
+        social_discord: settings.social_discord,
+        social_instagram: settings.social_instagram,
+        social_twitter: settings.social_twitter,
+        social_youtube: settings.social_youtube,
+        support_email: settings.support_email,
+        seo_title: settings.seo_title,
+        seo_description: settings.seo_description,
+        primary_color: settings.primary_color,
+        maintenance: maintenance,
+        announcement: updated,
+        updated_at: new Date().toISOString()
+      }]);
+    } catch (e) {
+      console.error('Error updating announcement:', e);
+    }
   };
 
   const logError = async (error: Omit<SystemErrorLog, 'id' | 'timestamp' | 'status'>) => {

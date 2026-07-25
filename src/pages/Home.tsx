@@ -11,7 +11,7 @@ import { sortGamesAlphanumeric } from '../lib/gameUtils';
 import { usePageTitle } from '../hooks/usePageTitle';
 
 export const Home = () => {
-  usePageTitle('Orion');
+  usePageTitle('Sirius');
   const { user } = useAuth();
   const { t } = useLanguage();
   const [games, setGames] = useState<Game[]>([]);

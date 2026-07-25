@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSiteSettings } from '../../contexts/SiteSettingsContext';
 import { Settings, Save, Globe, Share2, Palette, Search, CheckCircle2 } from 'lucide-react';
 
@@ -6,6 +6,10 @@ export const SettingsManager = () => {
   const { settings, updateSettings } = useSiteSettings();
   const [formData, setFormData] = useState({ ...settings });
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    setFormData({ ...settings });
+  }, [settings]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

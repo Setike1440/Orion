@@ -40,16 +40,18 @@ export const AnnouncementBar = () => {
     <div className={`w-full py-2 px-4 border-b text-xs font-semibold flex items-center justify-between gap-3 relative z-50 transition-all ${getColorClasses()}`}>
       <div className="max-w-7xl mx-auto flex-1 flex items-center justify-center gap-2 text-center">
         {renderIcon()}
-        <span className="truncate">{announcement.text}</span>
-        {announcement.link_url && (
-          <Link 
-            to={announcement.link_url} 
-            className="inline-flex items-center gap-1 underline underline-offset-2 hover:opacity-80 transition-opacity ml-1"
-          >
-            <span>Saber mais</span>
-            <ArrowRight className="w-3 h-3" />
-          </Link>
-        )}
+        <div className="inline-flex items-center gap-1.5 flex-wrap justify-center">
+          <span>{announcement.text}</span>
+          {announcement.link_url && (
+            <Link 
+              to={announcement.link_url} 
+              className="inline-flex items-center gap-1 underline underline-offset-2 hover:opacity-80 transition-opacity"
+            >
+              <span>Saber mais</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          )}
+        </div>
       </div>
       <button 
         onClick={() => setDismissed(true)} 

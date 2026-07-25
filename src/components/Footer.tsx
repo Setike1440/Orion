@@ -2,9 +2,11 @@ import React from 'react';
 import { Gamepad2, Github, Twitter, Instagram } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useSiteSettings } from '../contexts/SiteSettingsContext';
 
 export const Footer = () => {
   const { t } = useLanguage();
+  const { settings } = useSiteSettings();
   
   return (
     <footer className="bg-[#0d0e12] border-t border-[#1f212a] pt-12 pb-8 mt-12 sm:mt-16">
@@ -14,7 +16,11 @@ export const Footer = () => {
           {/* Brand */}
           <div className="col-span-1 md:col-span-1">
             <Link to="/" className="flex items-center gap-2 mb-4 group">
-              <img src="https://i.imgur.com/0a36M0M.png" alt="Orion" className="h-5 sm:h-6 w-auto object-contain" />
+              <img 
+                src={settings.logo_url || "https://i.ibb.co/zW1gzQRR/Logo.png"} 
+                alt={settings.site_name || "Sirius"} 
+                className="h-5 sm:h-6 w-auto object-contain" 
+              />
             </Link>
             <p className="text-xs sm:text-sm text-gray-400 mb-6 leading-relaxed">
               {t('footer_desc')}
@@ -62,7 +68,7 @@ export const Footer = () => {
 
         <div className="pt-8 border-t border-[#1f212a] flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-gray-500">
-            &copy; {new Date().getFullYear()} Orion Steam Library. {t('rights')}
+            &copy; {new Date().getFullYear()} {settings.site_name || 'Sirius'} Steam Library. {t('rights')}
           </p>
         </div>
       </div>

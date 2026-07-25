@@ -241,11 +241,13 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- CONFIGURAÇÕES INICIAIS DA APLICAÇÃO
-INSERT INTO public.site_settings (id, site_name, seo_title, maintenance, announcement)
+INSERT INTO public.site_settings (id, site_name, logo_url, favicon_url, seo_title, maintenance, announcement)
 VALUES (
   1, 
-  'Orion Games', 
-  'Orion Games - Contas Steam Gratuitas & Jogos em Destaque', 
+  'Sirius',
+  'https://i.ibb.co/zW1gzQRR/Logo.png',
+  'https://i.ibb.co/zW1gzQRR/Logo.png', 
+  'Sirius - Contas Steam Gratuitas & Jogos em Destaque', 
   '{"enabled": false, "message": "Manutenção preventiva em andamento."}'::jsonb, 
   '{"enabled": true, "text": "Novas contas adicionadas hoje! Aproveite e salve seus favoritos."}'::jsonb
 )
@@ -268,6 +270,7 @@ ALTER TABLE public.page_views ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Permitir leitura pública em games" ON public.games FOR SELECT USING (true);
 CREATE POLICY "Permitir leitura pública em categories" ON public.categories FOR SELECT USING (true);
 CREATE POLICY "Permitir leitura pública em site_settings" ON public.site_settings FOR SELECT USING (true);
+CREATE POLICY "Permitir gerenciamento de site_settings" ON public.site_settings FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Permitir leitura pública em blocked_ips" ON public.blocked_ips FOR SELECT USING (true);
 CREATE POLICY "Permitir gerenciamento de sugestões" ON public.suggestions FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Permitir gerenciamento de erros" ON public.error_logs FOR ALL USING (true) WITH CHECK (true);

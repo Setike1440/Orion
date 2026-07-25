@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSiteSettings } from '../../contexts/SiteSettingsContext';
 import { Wrench, ShieldAlert, Clock, Save, CheckCircle2 } from 'lucide-react';
 
@@ -6,6 +6,10 @@ export const MaintenanceManager = () => {
   const { maintenance, updateMaintenance } = useSiteSettings();
   const [formData, setFormData] = useState({ ...maintenance });
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    setFormData({ ...maintenance });
+  }, [maintenance]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useSiteSettings } from '../contexts/SiteSettingsContext';
 import { Gamepad2, User, LogOut, ShieldAlert, Search, Heart, ArrowRight, MonitorCheck, X, MessageSquarePlus } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
 import { supabase } from '../lib/supabase';
@@ -10,8 +11,10 @@ import { Language, translations } from '../contexts/LanguageContext';
 import { sortGamesAlphanumeric } from '../lib/gameUtils';
 
 export const Navbar = () => {
-  const { user, profile, signOut, openAuthModal } = useAuth();
+  const { user, profile, signOut, openAuthModal, loading } = useAuth();
+  const { settings } = useSiteSettings();
   const { t, language, setLanguage } = useLanguage();
+
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -110,7 +113,11 @@ export const Navbar = () => {
           {/* Logo & Search */}
           <div className="flex items-center gap-8 flex-1">
             <Link to="/" className="flex items-center gap-2 group shrink-0">
-              <img src="https://i.imgur.com/0a36M0M.png" alt="Orion" className="h-5 sm:h-6 w-auto object-contain" />
+              <img 
+                src={settings.logo_url || "https://i.ibb.co/zW1gzQRR/Logo.png"} 
+                alt={settings.site_name || "Sirius"} 
+                className="h-5 sm:h-6 w-auto object-contain" 
+              />
             </Link>
 
             <div className={`hidden md:flex max-w-lg w-full relative transition-all duration-200 ${showNavbarSearch ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} ref={searchRef}>
@@ -204,7 +211,9 @@ export const Navbar = () => {
               </button>
             </div>
 
-            {user ? (
+            {loading ? (
+              <div className="h-9 w-24 bg-[#0d0e12] border border-[#20222c] rounded-full animate-pulse" />
+            ) : user ? (
               <div className="flex items-center gap-3">
                 <div className="relative group">
                   <button className="h-9 px-2 pr-3.5 flex items-center gap-2 bg-[#0d0e12] border border-[#20222c] hover:bg-[#1a1c26] hover:border-[#3a3d52] rounded-full transition-all shadow-sm cursor-pointer group">

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
+import { supabase, createIsolatedSupabaseClient } from '../../lib/supabase';
 import { Users, UserPlus, Shield, Trash2, Search, X, Check, Mail, Calendar, Edit2, Key, UserCheck } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -158,7 +158,8 @@ export const UsersManager = () => {
           return;
         }
 
-        const { data, error } = await supabase.auth.signUp({
+        const isolatedClient = createIsolatedSupabaseClient();
+        const { data, error } = await isolatedClient.auth.signUp({
           email: newUserEmail,
           password: newUserPassword,
         });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSiteSettings } from '../../contexts/SiteSettingsContext';
 import { Megaphone, Save, CheckCircle2, Sparkles, Bell, AlertTriangle, Info } from 'lucide-react';
 
@@ -6,6 +6,10 @@ export const AnnouncementManager = () => {
   const { announcement, updateAnnouncement } = useSiteSettings();
   const [formData, setFormData] = useState({ ...announcement });
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    setFormData({ ...announcement });
+  }, [announcement]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
