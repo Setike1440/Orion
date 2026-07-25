@@ -835,7 +835,259 @@ export const translations: Translations = {
     pt: "Nenhum jogo encontrado nesta categoria no momento.",
     en: "No games found in this category at the moment.",
     es: "No se encontraron juegos en esta categoría por el momento."
+  },
+  "logged_in_as": {
+    pt: "Logado como",
+    en: "Logged in as",
+    es: "Iniciado sesión como"
+  },
+  "clear": {
+    pt: "Limpar",
+    en: "Clear",
+    es: "Limpiar"
+  },
+  "save_credentials_q": {
+    pt: "Salvar credenciais?",
+    en: "Save credentials?",
+    es: "¿Guardar credenciales?"
+  },
+  "search_results": {
+    pt: "Resultados da busca",
+    en: "Search results",
+    es: "Resultados de la búsqueda"
+  },
+  "no_results_found": {
+    pt: "Nenhum resultado encontrado",
+    en: "No results found",
+    es: "No se encontraron resultados"
+  },
+  "play_now": {
+    pt: "Jogar Agora",
+    en: "Play Now",
+    es: "Jugar Ahora"
+  },
+  "featured": {
+    pt: "Destaque",
+    en: "Featured",
+    es: "Destacado"
+  },
+  "popular": {
+    pt: "Popular",
+    en: "Popular",
+    es: "Popular"
+  },
+  "account_not_working": {
+    pt: "Conta não funciona? Falar com Suporte",
+    en: "Account not working? Contact Support",
+    es: "¿La cuenta no funciona? Hablar con Soporte"
+  },
+  "favorite_game": {
+    pt: "Favoritar Jogo",
+    en: "Favorite Game",
+    es: "Añadir a Favoritos"
+  },
+  "game_favorited": {
+    pt: "Jogo Favoritado",
+    en: "Game Favorited",
+    es: "Juego Guardado"
+  },
+  "available_accounts": {
+    pt: "Contas disponíveis:",
+    en: "Available accounts:",
+    es: "Cuentas disponibles:"
+  },
+  "username_label": {
+    pt: "Nome de Usuário",
+    en: "Username",
+    es: "Nombre de Usuario"
+  },
+  "save": {
+    pt: "Salvar",
+    en: "Save",
+    es: "Guardar"
+  },
+  "saved_successfully": {
+    pt: "Salvo com sucesso!",
+    en: "Saved successfully!",
+    es: "¡Guardado con éxito!"
+  },
+  "detected_hardware": {
+    pt: "Hardware Detectado",
+    en: "Detected Hardware",
+    es: "Hardware Detectado"
+  },
+  "adjust_specs": {
+    pt: "Ajustar Especificações",
+    en: "Adjust Specifications",
+    es: "Ajustar Especificaciones"
+  },
+  "ram_label": {
+    pt: "Memória RAM",
+    en: "RAM Memory",
+    es: "Memoria RAM"
+  },
+  "processor_cores": {
+    pt: "Núcleos do Processador",
+    en: "Processor Cores",
+    es: "Núcleos del Procesador"
+  },
+  "gpu_label": {
+    pt: "Placa de Vídeo (GPU)",
+    en: "Graphics Card (GPU)",
+    es: "Tarjeta de Vídeo (GPU)"
+  },
+  "os_label": {
+    pt: "Sistema Operacional",
+    en: "Operating System",
+    es: "Sistema Operativo"
+  },
+  "can_run_game": {
+    pt: "Seu PC Roda este Jogo!",
+    en: "Your PC Can Run This Game!",
+    es: "¡Tu PC Corre Este Juego!"
+  },
+  "cannot_run_game": {
+    pt: "Atenção aos Requisitos",
+    en: "Check Requirements",
+    es: "Atención a los Requisitos"
+  },
+  "minimum": {
+    pt: "Mínimo",
+    en: "Minimum",
+    es: "Mínimo"
+  },
+  "recommended": {
+    pt: "Recomendado",
+    en: "Recommended",
+    es: "Recomendado"
+  },
+  "cat_Terror": {
+    pt: "Terror",
+    en: "Horror",
+    es: "Terror"
+  },
+  "cat_Mundo Aberto": {
+    pt: "Mundo Aberto",
+    en: "Open World",
+    es: "Mundo Abierto"
+  },
+  "cat_Corrida": {
+    pt: "Corrida",
+    en: "Racing",
+    es: "Carreras"
+  },
+  "cat_Ação": {
+    pt: "Ação",
+    en: "Action",
+    es: "Acción"
+  },
+  "cat_RPG": {
+    pt: "RPG",
+    en: "RPG",
+    es: "RPG"
+  },
+  "cat_Esportes": {
+    pt: "Esportes",
+    en: "Sports",
+    es: "Deportes"
+  },
+  "cat_Estratégia": {
+    pt: "Estratégia",
+    en: "Strategy",
+    es: "Estrategia"
+  },
+  "cat_Aventura": {
+    pt: "Aventura",
+    en: "Adventure",
+    es: "Aventura"
+  },
+  "cat_Sobrevivência": {
+    pt: "Sobrevivência",
+    en: "Survival",
+    es: "Supervivencia"
+  },
+  "cat_Simulação": {
+    pt: "Simulação",
+    en: "Simulation",
+    es: "Simulación"
+  },
+  "cat_Luta": {
+    pt: "Luta",
+    en: "Fighting",
+    es: "Lucha"
+  },
+  "cat_Anime": {
+    pt: "Anime",
+    en: "Anime",
+    es: "Anime"
+  },
+  "cat_Indie": {
+    pt: "Indie",
+    en: "Indie",
+    es: "Indie"
+  },
+  "cat_Ficção Científica": {
+    pt: "Ficção Científica",
+    en: "Sci-Fi",
+    es: "Ciencia Ficción"
+  },
+  "cat_Casual": {
+    pt: "Casual",
+    en: "Casual",
+    es: "Casual"
+  },
+  "suggest_game": {
+    pt: "Pedir Jogo",
+    en: "Request Game",
+    es: "Pedir Juego"
+  },
+  "suggest_game_title": {
+    pt: "Pedir / Sugerir um Jogo",
+    en: "Request / Suggest a Game",
+    es: "Pedir / Sugerir un Juego"
+  },
+  "suggest_game_desc": {
+    pt: "Não encontrou o jogo que deseja? Envie sua sugestão para nossa equipe e faremos o possível para adicioná-lo ao catálogo!",
+    en: "Didn't find the game you want? Send your suggestion to our team and we'll do our best to add it!",
+    es: "¡¿No encontraste el juego que deseas? Envía tu sugerencia a nuestro equipo y haremos lo posible para agregarlo!"
+  },
+  "game_title_label": {
+    pt: "Nome do Jogo",
+    en: "Game Title",
+    es: "Nombre del Juego"
+  },
+  "category_platform_label": {
+    pt: "Categoria / Plataforma (ex: Steam, Epic Games, GOG)",
+    en: "Category / Platform (e.g. Steam, Epic Games, GOG)",
+    es: "Categoría / Plataforma (ej: Steam, Epic Games, GOG)"
+  },
+  "notes_label": {
+    pt: "Observações Adicionais (opcional)",
+    en: "Additional Notes (optional)",
+    es: "Notas Adicionales (opcional)"
+  },
+  "send_suggestion_btn": {
+    pt: "Enviar Sugestão",
+    en: "Send Suggestion",
+    es: "Enviar Sugerencia"
+  },
+  "suggestion_success_msg": {
+    pt: "Sua sugestão foi enviada com sucesso ao painel dos administradores!",
+    en: "Your suggestion was sent successfully to the admin team!",
+    es: "¡Tu sugerencia fue enviada con éxito al equipo de administración!"
+  },
+  "admin_suggestions": {
+    pt: "Sugestões dos Clientes",
+    en: "Client Suggestions",
+    es: "Sugerencias de Clientes"
   }
+};
+
+export const getCategoryTranslation = (catName: string | undefined | null, t: (k: string) => string) => {
+  if (!catName) return '';
+  const key = `cat_${catName.trim()}`;
+  const translated = t(key);
+  return translated !== key ? translated : catName;
 };
 
 interface LanguageContextType {

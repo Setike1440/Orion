@@ -63,7 +63,7 @@ export const Settings = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0b0e] pt-12 pb-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-[#000000] pt-12 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto space-y-6">
           <Skeleton className="h-8 w-40 rounded-xl" />
           <Skeleton className="h-10 w-64 rounded-xl" />
@@ -76,7 +76,7 @@ export const Settings = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-[#0a0b0e] pt-12 pb-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#000000] pt-12 pb-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-6">
         <Breadcrumb 
           items={[
@@ -86,7 +86,7 @@ export const Settings = () => {
         />
 
         <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6 flex items-center gap-3">
-          <SettingsIcon className="w-7 h-7 text-[#268FFF]" />
+          <SettingsIcon className="w-7 h-7 text-[#FF0000]" />
           {t('settings') || 'Configurações da Conta'}
         </h1>
 
@@ -101,7 +101,7 @@ export const Settings = () => {
                 <Mail className="w-4 h-4 text-gray-500" /> {profile?.email || user.email}
               </p>
               <div className="mt-3 inline-flex items-center gap-2 bg-[#181920] border border-[#1f212a] px-3 py-1 rounded-full">
-                <Shield className="w-3.5 h-3.5 text-[#268FFF]" />
+                <Shield className="w-3.5 h-3.5 text-[#FF0000]" />
                 <span className="text-xs font-medium text-gray-300 capitalize">
                   Role: {profile?.role || 'Nenhuma'}
                 </span>
@@ -109,10 +109,10 @@ export const Settings = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="flex flex-col gap-8">
             <div className="space-y-5">
               <h3 className="text-base font-semibold text-white flex items-center gap-2">
-                <User className="w-4 h-4 text-[#268FFF]" />
+                <User className="w-4 h-4 text-[#FF0000]" />
                 {t('profile_details')}
               </h3>
               
@@ -128,12 +128,12 @@ export const Settings = () => {
                       onChange={(e) => setUsername(e.target.value)}
                       placeholder="Seu nome de usuário"
                       required
-                      className="flex-1 bg-[#0a0b0e] border border-[#1f212a] focus:border-[#268FFF] rounded-xl p-3 text-xs text-white focus:outline-none transition-all"
+                      className="flex-1 bg-[#000000] border border-[#1f212a] focus:border-[#FF0000] rounded-xl p-3 text-xs text-white focus:outline-none transition-all"
                     />
                     <button
                       type="submit"
                       disabled={savingUsername}
-                      className="bg-[#268FFF] hover:bg-[#1f7fe6] text-white font-semibold text-xs px-4 py-3 rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                      className="bg-[#FF0000] hover:bg-[#e60000] text-white font-semibold text-xs px-4 py-3 rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-sm disabled:opacity-50"
                     >
                       {savingUsername ? <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
                       <span>Salvar</span>
@@ -148,24 +148,24 @@ export const Settings = () => {
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">{t('user_id')}</label>
-                  <input type="text" disabled value={user.id} className="w-full bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-3 text-xs text-gray-300 font-mono opacity-80" />
+                  <input type="text" disabled value={user.id} className="w-full bg-[#000000] border border-[#1f212a] rounded-xl p-3 text-xs text-gray-300 font-mono opacity-80" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 text-gray-500" /> {t('member_since')}
                   </label>
-                  <input type="text" disabled value={new Date(user.created_at).toLocaleDateString()} className="w-full bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-3 text-xs text-gray-300 opacity-80" />
+                  <input type="text" disabled value={new Date(user.created_at).toLocaleDateString()} className="w-full bg-[#000000] border border-[#1f212a] rounded-xl p-3 text-xs text-gray-300 opacity-80" />
                 </div>
               </form>
             </div>
 
             <div className="space-y-5">
               <h3 className="text-base font-semibold text-white flex items-center gap-2">
-                <Key className="w-4 h-4 text-[#268FFF]" />
+                <Key className="w-4 h-4 text-[#FF0000]" />
                 {t('security')}
               </h3>
               
-              <div className="bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-5">
+              <div className="bg-[#000000] border border-[#1f212a] rounded-xl p-5">
                 <p className="text-xs text-gray-400 mb-4 leading-relaxed">
                   {t('security_info')}
                 </p>

@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { useLanguage } from '../contexts/LanguageContext';
-import { ShieldCheck, Download, Lock, Key, Copy, CheckCircle2, ArrowLeft, Heart, MonitorCheck, Headphones, HelpCircle, User } from 'lucide-react';
+import { useLanguage, getCategoryTranslation } from '../contexts/LanguageContext';
+import { ShieldCheck, Download, Lock, Key, Copy, CheckCircle2, ArrowLeft, Heart, MonitorCheck, Headphones, HelpCircle, User, Cpu, HardDrive, Monitor, Tv, MemoryStick, Layers } from 'lucide-react';
 import { Skeleton } from '../components/Skeleton';
 import { GameCard, Game } from '../components/GameCard';
 import { Breadcrumb } from '../components/Breadcrumb';
@@ -52,12 +52,18 @@ export const GameDetails = () => {
       let gameData = gameRes.data as any;
 
       let localHighlights: Record<string, any> = {};
+      let localAccounts: Record<string, any[]> = {};
       try {
         localHighlights = JSON.parse(localStorage.getItem('custom_game_highlights') || '{}');
+        localAccounts = JSON.parse(localStorage.getItem('custom_game_accounts') || '{}');
       } catch (e) {}
       const custom = localHighlights[gameData.id];
       const rawText = custom?.highlight_text || gameData.highlight_text || gameData.admin_highlight_text;
       gameData.highlight_text = (!rawText || rawText === 'Garantia Vitalícia' || rawText === 'Garantia' || rawText === 'GARANTIA' || rawText === 'Jogue Agora') ? 'Jogar Agora' : rawText;
+
+      if (localAccounts[gameData.id] && Array.isArray(localAccounts[gameData.id]) && localAccounts[gameData.id].length > 0) {
+        gameData.accounts = localAccounts[gameData.id];
+      }
 
       if (gameData.category_ids && gameData.category_ids.length > 0) {
         const c = cats.find(c => c.id === gameData.category_ids[0]);
@@ -67,6 +73,20 @@ export const GameDetails = () => {
         if (c) gameData.category = { name: c.name, slug: c.slug };
       }
       setGame(gameData);
+
+      // Preload images for maximum speed
+      if (gameData.cover_url) {
+        const img = new Image();
+        img.src = gameData.cover_url;
+      }
+      if (gameData.images && Array.isArray(gameData.images)) {
+        gameData.images.forEach((imgUrl: string) => {
+          if (imgUrl) {
+            const img = new Image();
+            img.src = imgUrl;
+          }
+        });
+      }
 
       if (user && gameData) {
         const { data: fav } = await supabase
@@ -143,16 +163,18 @@ export const GameDetails = () => {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-1">
-            <Skeleton className="w-full aspect-[460/215] rounded-2xl" />
-          </div>
-          <div className="md:col-span-2 space-y-4">
-            <Skeleton className="h-10 w-3/4" />
-            <Skeleton className="h-4 w-1/4 mb-8" />
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-48 w-full mt-8" />
+      <div className="min-h-screen bg-[#000000] py-8 md:py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="md:col-span-1">
+              <Skeleton className="w-full aspect-[460/215] rounded-2xl" />
+            </div>
+            <div className="md:col-span-2 space-y-4">
+              <Skeleton className="h-10 w-3/4 rounded-xl" />
+              <Skeleton className="h-4 w-1/4 mb-8 rounded-lg" />
+              <Skeleton className="h-32 w-full rounded-2xl" />
+              <Skeleton className="h-48 w-full mt-8 rounded-2xl" />
+            </div>
           </div>
         </div>
       </div>
@@ -163,7 +185,7 @@ export const GameDetails = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] text-white">
         <h2 className="text-2xl font-bold mb-2">{t('game_not_found')}</h2>
-        <Link to="/" className="text-[#268FFF] hover:underline">{t('back_home')}</Link>
+        <Link to="/" className="text-[#FF0000] hover:underline">{t('back_home')}</Link>
       </div>
     );
   }
@@ -175,7 +197,7 @@ export const GameDetails = () => {
       <div className="mb-6 space-y-3">
         <button
           onClick={() => navigate('/')}
-          className="inline-flex items-center gap-2 bg-[#268FFF] text-white hover:bg-[#1a7be6] text-sm font-bold transition-all px-5 py-2.5 rounded-xl shadow-md group cursor-pointer"
+          className="inline-flex items-center gap-2 bg-[#FF0000] text-white hover:bg-[#e60000] text-sm font-bold transition-all px-5 py-2.5 rounded-xl shadow-md group cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
           <span>{t('back_to_menu')}</span>
@@ -185,7 +207,7 @@ export const GameDetails = () => {
           items={[
             { label: t('all_games'), path: '/' },
             { 
-              label: game.category?.name || 'Steam', 
+              label: getCategoryTranslation(game.category?.name, t) || 'Steam', 
               path: game.category?.slug ? `/categoria/${game.category.slug}` : '/' 
             },
             { label: game.title }
@@ -202,13 +224,15 @@ export const GameDetails = () => {
                 <img 
                   src={game.cover_url} 
                   alt={game.title}
+                  loading="eager"
+                  decoding="async"
                   className="object-cover w-full h-full"
                 />
-                <div className="absolute top-2.5 left-2.5 bg-[#268FFF] text-white text-[10px] font-semibold px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-sm">
+                <div className="absolute top-2.5 left-2.5 bg-[#FF0000] text-white text-[10px] font-semibold px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-sm">
                   <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
                     <path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.03 4.524 4.524s-2.03 4.524-4.524 4.524c-.102 0-.201-.008-.302-.014l-4.062 2.922c.004.073.01.147.01.221 0 1.861-1.514 3.375-3.375 3.375-1.425 0-2.645-.888-3.136-2.14L.272 16.208C1.582 20.76 5.792 24 11.979 24c6.627 0 12-5.373 12-12s-5.373-12-12-12z" />
                   </svg>
-                  <span>{(!game.highlight_text || game.highlight_text === 'Garantia Vitalícia' || game.highlight_text === 'Garantia' || game.highlight_text === 'Jogue Agora') ? 'Jogar Agora' : game.highlight_text}</span>
+                  <span>{(!game.highlight_text || game.highlight_text === 'Garantia Vitalícia' || game.highlight_text === 'Garantia' || game.highlight_text === 'Jogue Agora') ? t('play_now') : game.highlight_text}</span>
                 </div>
               </div>
               
@@ -227,6 +251,8 @@ export const GameDetails = () => {
                     <img 
                       src={imgUrl} 
                       alt={`${game.title} screenshot ${idx + 1}`}
+                      loading="eager"
+                      decoding="async"
                       className="object-cover w-full h-full"
                     />
                   </div>
@@ -239,10 +265,10 @@ export const GameDetails = () => {
         {/* Content */}
         <div className="lg:col-span-8 flex flex-col">
           
-          <div className="mb-8">
+          <div className="mb-6">
             <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
               <div className="inline-block px-3 py-1 bg-[#121318] border border-[#1f212a] text-gray-300 rounded-full text-xs font-semibold">
-                {game.category?.name || 'Steam Offline'}
+                {getCategoryTranslation(game.category?.name, t) || 'Steam Offline'}
               </div>
 
               <div className="flex items-center gap-3">
@@ -265,7 +291,7 @@ export const GameDetails = () => {
                   }`}
                 >
                   <Heart className={`w-4 h-4 ${isFavorite ? 'fill-white text-white' : 'text-gray-400 group-hover:text-white'}`} />
-                  <span>{isFavorite ? 'Jogo Favoritado' : 'Favoritar Jogo'}</span>
+                  <span>{isFavorite ? t('game_favorited') : t('favorite_game')}</span>
                 </button>
               </div>
             </div>
@@ -280,10 +306,12 @@ export const GameDetails = () => {
             </div>
           </div>
 
-          <div className="mt-6 border-t border-[#1f212a] pt-8">
+          <div className="w-full h-px bg-gradient-to-r from-transparent via-[#252733] to-transparent my-8" />
+
+          <div className="mt-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <h2 className="text-xl font-bold text-white flex items-center gap-2.5">
-                <Key className="w-5 h-5 text-[#268FFF]" />
+                <Key className="w-5 h-5 text-[#FF0000]" />
                 {t('game_access')}
               </h2>
 
@@ -293,26 +321,39 @@ export const GameDetails = () => {
                 onClick={() => {}}
                 className="inline-flex items-center gap-2 bg-[#181920] hover:bg-[#20222c] border border-[#20222c] text-gray-300 hover:text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-sm cursor-pointer self-start sm:self-auto"
               >
-                <Headphones className="w-4 h-4 text-[#268FFF]" />
-                <span>Conta não funciona? Falar com Suporte</span>
+                <Headphones className="w-4 h-4 text-[#FF0000]" />
+                <span>{t('account_not_working')}</span>
               </button>
             </div>
 
             {user ? (() => {
-              const accountsList = (game.accounts && Array.isArray(game.accounts) && game.accounts.length > 0)
-                ? game.accounts
-                : [{ name: 'Conta 1', steam_username: game.steam_username, steam_password: game.steam_password }];
+              let accountsList: any[] = [];
+              try {
+                const localAccounts = JSON.parse(localStorage.getItem('custom_game_accounts') || '{}');
+                if (localAccounts[game.id] && Array.isArray(localAccounts[game.id]) && localAccounts[game.id].length > 0) {
+                  accountsList = localAccounts[game.id];
+                }
+              } catch (e) {}
+
+              if (accountsList.length === 0) {
+                if (game.accounts && Array.isArray(game.accounts) && game.accounts.length > 0) {
+                  accountsList = game.accounts;
+                } else {
+                  accountsList = [{ name: 'Conta 1', steam_username: game.steam_username, steam_password: game.steam_password }];
+                }
+              }
+
               const currentAccount = accountsList[activeAccountIndex] || accountsList[0];
 
               return (
                 <div className="bg-[#121318] border border-[#1f212a] rounded-2xl p-6 relative overflow-hidden shadow-sm space-y-6">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#268FFF] opacity-5 blur-[80px] rounded-full"></div>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF0000] opacity-5 blur-[80px] rounded-full"></div>
                   
                   {/* Account Selector if multiple */}
                   {accountsList.length > 1 && (
                     <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-[#1f212a]">
                       <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider shrink-0 mr-2 flex items-center gap-1.5">
-                        <User className="w-3.5 h-3.5 text-[#268FFF]" /> Contas disponíveis:
+                        <User className="w-3.5 h-3.5 text-[#FF0000]" /> {t('available_accounts')}
                       </span>
                       {accountsList.map((acc: any, idx: number) => (
                         <button
@@ -321,7 +362,7 @@ export const GameDetails = () => {
                           onClick={() => setActiveAccountIndex(idx)}
                           className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                             activeAccountIndex === idx
-                              ? 'bg-[#268FFF] text-white shadow-sm'
+                              ? 'bg-[#FF0000] text-white shadow-sm'
                               : 'bg-[#181920] border border-[#1f212a] text-gray-400 hover:text-white'
                           }`}
                         >
@@ -336,30 +377,30 @@ export const GameDetails = () => {
                   </p>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-4">
+                    <div className="bg-[#000000] border border-[#1f212a] rounded-xl p-4">
                       <label className="text-[10px] text-gray-500 uppercase font-semibold tracking-wider block mb-1.5">{t('steam_user')}</label>
                       <div className="flex items-center justify-between gap-4">
                         <span className="text-white font-mono text-base">{currentAccount.steam_username}</span>
                         <button 
                           onClick={() => copyToClipboard(currentAccount.steam_username, 'user')}
-                          className="text-gray-400 hover:text-[#268FFF] transition-colors p-2 bg-[#121318] border border-[#1f212a] rounded-lg cursor-pointer"
+                          className="text-gray-400 hover:text-[#FF0000] transition-colors p-2 bg-[#121318] border border-[#1f212a] rounded-lg cursor-pointer"
                           title={t('copy_user')}
                         >
-                          {copiedUser ? <CheckCircle2 className="w-4 h-4 text-[#268FFF]" /> : <Copy className="w-4 h-4" />}
+                          {copiedUser ? <CheckCircle2 className="w-4 h-4 text-[#FF0000]" /> : <Copy className="w-4 h-4" />}
                         </button>
                       </div>
                     </div>
 
-                    <div className="bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-4">
+                    <div className="bg-[#000000] border border-[#1f212a] rounded-xl p-4">
                       <label className="text-[10px] text-gray-500 uppercase font-semibold tracking-wider block mb-1.5">{t('steam_pass')}</label>
                       <div className="flex items-center justify-between gap-4">
                         <span className="text-white font-mono text-base">{currentAccount.steam_password}</span>
                         <button 
                           onClick={() => copyToClipboard(currentAccount.steam_password, 'pass')}
-                          className="text-gray-400 hover:text-[#268FFF] transition-colors p-2 bg-[#121318] border border-[#1f212a] rounded-lg cursor-pointer"
+                          className="text-gray-400 hover:text-[#FF0000] transition-colors p-2 bg-[#121318] border border-[#1f212a] rounded-lg cursor-pointer"
                           title={t('copy_pass')}
                         >
-                          {copiedPass ? <CheckCircle2 className="w-4 h-4 text-[#268FFF]" /> : <Copy className="w-4 h-4" />}
+                          {copiedPass ? <CheckCircle2 className="w-4 h-4 text-[#FF0000]" /> : <Copy className="w-4 h-4" />}
                         </button>
                       </div>
                     </div>
@@ -382,7 +423,7 @@ export const GameDetails = () => {
                   {t('login_needed_desc')}
                 </p>
                 <div className="flex gap-3">
-                  <button type="button" onClick={() => openAuthModal('login')} className="bg-[#268FFF] hover:bg-[#1f7fe6] text-white font-semibold px-6 py-2.5 rounded-xl transition-all cursor-pointer text-xs sm:text-sm shadow-sm">
+                  <button type="button" onClick={() => openAuthModal('login')} className="bg-[#FF0000] hover:bg-[#e60000] text-white font-semibold px-6 py-2.5 rounded-xl transition-all cursor-pointer text-xs sm:text-sm shadow-sm">
                     {t('login')}
                   </button>
                   <button type="button" onClick={() => openAuthModal('register')} className="bg-[#181920] border border-[#20222c] text-white font-semibold px-6 py-2.5 rounded-xl hover:bg-[#20222c] transition-all cursor-pointer text-xs sm:text-sm shadow-sm">
@@ -394,19 +435,67 @@ export const GameDetails = () => {
           </div>
           
           {game.requirements && (
-            <div className="mt-8 border-t border-[#1f212a] pt-8">
-              <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2.5">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#268FFF]"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            <>
+              <div className="w-full h-px bg-gradient-to-r from-transparent via-[#252733] to-transparent my-8" />
+              <div className="mt-4">
+                <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2.5">
+                <Cpu className="w-5 h-5 text-[#FF0000]" />
                 {t('sys_req')}
               </h2>
               <div className="bg-[#121318] border border-[#1f212a] rounded-2xl p-6 shadow-sm">
-                <div className="prose prose-invert max-w-none text-gray-400">
-                  <p className="whitespace-pre-wrap text-xs sm:text-sm leading-relaxed">
-                    {game.requirements}
-                  </p>
-                </div>
+                {(() => {
+                  const lines = game.requirements.split('\n').map((l: string) => l.trim()).filter(Boolean);
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      {lines.map((line: string, idx: number) => {
+                        let icon = <Cpu className="w-4 h-4 text-[#FF0000] shrink-0" />;
+                        const lower = line.toLowerCase();
+                        if (lower.includes('so:') || lower.includes('os:') || lower.includes('sistema')) {
+                          icon = <Monitor className="w-4 h-4 text-[#FF0000] shrink-0" />;
+                        } else if (lower.includes('processador') || lower.includes('cpu') || lower.includes('processor')) {
+                          icon = <Cpu className="w-4 h-4 text-[#FF0000] shrink-0" />;
+                        } else if (lower.includes('memória') || lower.includes('memoria') || lower.includes('ram') || lower.includes('memory')) {
+                          icon = <MemoryStick className="w-4 h-4 text-[#FF0000] shrink-0" />;
+                        } else if (lower.includes('placa') || lower.includes('vídeo') || lower.includes('video') || lower.includes('gpu') || lower.includes('graphics')) {
+                          icon = <Tv className="w-4 h-4 text-[#FF0000] shrink-0" />;
+                        } else if (lower.includes('armazenamento') || lower.includes('disco') || lower.includes('storage') || lower.includes('espaço')) {
+                          icon = <HardDrive className="w-4 h-4 text-[#FF0000] shrink-0" />;
+                        } else {
+                          icon = <Layers className="w-4 h-4 text-[#FF0000] shrink-0" />;
+                        }
+
+                        const colonIdx = line.indexOf(':');
+                        let label = '';
+                        let val = line;
+                        if (colonIdx !== -1) {
+                          label = line.substring(0, colonIdx).trim();
+                          val = line.substring(colonIdx + 1).trim();
+                        }
+
+                        return (
+                          <div key={idx} className="bg-[#000000] border border-[#1f212a] p-3.5 rounded-xl flex items-start gap-3">
+                            <div className="p-2 bg-[#121318] border border-[#1f212a] rounded-lg shrink-0 mt-0.5">
+                              {icon}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              {label ? (
+                                <>
+                                  <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider block mb-0.5">{label}</span>
+                                  <span className="text-xs sm:text-sm text-gray-200 font-medium leading-snug block">{val}</span>
+                                </>
+                              ) : (
+                                <span className="text-xs sm:text-sm text-gray-200 font-medium leading-snug block">{line}</span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
+          </>
           )}
         </div>
       </div>

@@ -6,6 +6,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { ConfirmModal, AdminToast } from '../../components/admin/AdminModal';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { sortGamesAlphanumeric } from '../../lib/gameUtils';
+import { DEFAULT_CATEGORIES } from '../../data/categoriesData';
 
 interface GameAccount {
   id: string;
@@ -100,7 +101,14 @@ export const GamesManager = () => {
 
   const fetchCategories = async () => {
     const { data } = await supabase.from('categories').select('*');
-    setCategories(data || []);
+    const dbCats = data || [];
+    const merged = [...dbCats];
+    DEFAULT_CATEGORIES.forEach(defCat => {
+      if (!merged.some(c => c.id === defCat.id || (c.slug && c.slug.toLowerCase() === defCat.slug.toLowerCase()))) {
+        merged.push(defCat);
+      }
+    });
+    setCategories(merged);
   };
 
   const logAction = async (action: string, details: any) => {
@@ -133,13 +141,17 @@ export const GamesManager = () => {
 
   const handleOpenEdit = (game: any) => {
     let localHighlights: Record<string, any> = {};
+    let localAccounts: Record<string, any[]> = {};
     try {
       localHighlights = JSON.parse(localStorage.getItem('custom_game_highlights') || '{}');
+      localAccounts = JSON.parse(localStorage.getItem('custom_game_accounts') || '{}');
     } catch (e) {}
     const custom = localHighlights[game.id];
 
     let accountsList: GameAccount[] = [];
-    if (game.accounts && Array.isArray(game.accounts) && game.accounts.length > 0) {
+    if (localAccounts[game.id] && Array.isArray(localAccounts[game.id]) && localAccounts[game.id].length > 0) {
+      accountsList = localAccounts[game.id];
+    } else if (game.accounts && Array.isArray(game.accounts) && game.accounts.length > 0) {
       accountsList = game.accounts;
     } else {
       accountsList = [
@@ -274,8 +286,12 @@ export const GamesManager = () => {
             is_most_played: formData.admin_highlight_game
           };
           localStorage.setItem('custom_game_highlights', JSON.stringify(currentLocal));
+
+          const currentAccountsLocal = JSON.parse(localStorage.getItem('custom_game_accounts') || '{}');
+          currentAccountsLocal[gameId] = formData.accounts;
+          localStorage.setItem('custom_game_accounts', JSON.stringify(currentAccountsLocal));
         } catch (err) {
-          console.error('Error saving local highlights', err);
+          console.error('Error saving local highlights or accounts', err);
         }
       }
 
@@ -354,7 +370,7 @@ export const GamesManager = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-3">
-            <Gamepad2 className="w-6 h-6 text-[#268FFF]" />
+            <Gamepad2 className="w-6 h-6 text-[#FF0000]" />
             {t('admin_manage_games')}
           </h1>
           <p className="text-gray-400 text-xs sm:text-sm mt-1">Cadastre, edite e gerencie o catálogo de jogos da plataforma</p>
@@ -362,7 +378,7 @@ export const GamesManager = () => {
 
         <button 
           onClick={handleOpenAdd}
-          className="bg-[#268FFF] hover:bg-[#1f7fe6] text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm shrink-0"
+          className="bg-[#FF0000] hover:bg-[#e60000] text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>{t('admin_add_game')}</span>
@@ -370,7 +386,7 @@ export const GamesManager = () => {
       </div>
 
       {/* Filter and Search */}
-      <div className="bg-[#121318] border border-[#1f212a] rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+      <div className="bg-[#0d0e12] border border-[#1f212a] rounded-2xl p-4 flex items-center gap-3 shadow-sm">
         <Search className="w-4 h-4 text-gray-400 shrink-0" />
         <input 
           type="text" 
@@ -387,7 +403,7 @@ export const GamesManager = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-[#121318] border border-[#1f212a] rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-[#0d0e12] border border-[#1f212a] rounded-2xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs sm:text-sm text-gray-400">
             <thead className="bg-[#181920] text-gray-300 border-b border-[#1f212a]">
@@ -415,7 +431,7 @@ export const GamesManager = () => {
                       <div>
                         <span className="font-semibold text-white block">{game.title}</span>
                         {(game.admin_highlight_game || game.is_most_played || game.is_highlight) && (
-                          <span className="inline-block mt-1 text-[10px] text-[#268FFF] font-semibold bg-[#268FFF]/10 px-2 py-0.5 rounded-full border border-[#268FFF]/20">
+                          <span className="inline-block mt-1 text-[10px] text-[#FF0000] font-semibold bg-[#FF0000]/10 px-2 py-0.5 rounded-full border border-[#FF0000]/20">
                             {game.highlight_text || 'Destaque'}
                           </span>
                         )}
@@ -428,7 +444,7 @@ export const GamesManager = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#181920] border border-[#1f212a] text-gray-300 rounded-full text-xs font-semibold">
-                        <Key className="w-3.5 h-3.5 text-[#268FFF]" />
+                        <Key className="w-3.5 h-3.5 text-[#FF0000]" />
                         {(game.accounts && Array.isArray(game.accounts) && game.accounts.length > 0) ? `${game.accounts.length} conta(s)` : '1 conta'}
                       </span>
                     </td>
@@ -436,7 +452,7 @@ export const GamesManager = () => {
                       <div className="flex items-center justify-end gap-2">
                         <button 
                           onClick={() => handleOpenEdit(game)} 
-                          className="p-2 rounded-xl bg-[#181920] border border-[#1f212a] text-gray-400 hover:text-[#268FFF] transition-all cursor-pointer" 
+                          className="p-2 rounded-xl bg-[#181920] border border-[#1f212a] text-gray-400 hover:text-[#FF0000] transition-all cursor-pointer" 
                           title="Editar jogo"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -461,7 +477,7 @@ export const GamesManager = () => {
       {/* Add / Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#121318] border border-[#1f212a] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div className="bg-[#0d0e12] border border-[#1f212a] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
             <div className="sticky top-0 bg-[#181920] border-b border-[#1f212a] px-6 py-4 flex items-center justify-between z-10">
               <h2 className="text-base font-bold text-white">
                 {editingGameId ? 'Editar Jogo' : t('admin_add_new')}
@@ -475,19 +491,19 @@ export const GamesManager = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">{t('admin_game_title')}</label>
-                  <input type="text" required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-3 text-xs text-white focus:border-[#268FFF] outline-none" />
+                  <input type="text" required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full bg-[#000000] border border-[#1f212a] rounded-xl p-3 text-xs text-white focus:border-[#FF0000] outline-none" />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">{t('admin_cover_url')}</label>
-                  <input type="url" required value={formData.cover_url} onChange={e => setFormData({...formData, cover_url: e.target.value})} className="w-full bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-3 text-xs text-white focus:border-[#268FFF] outline-none" placeholder="https://..." />
+                  <input type="url" required value={formData.cover_url} onChange={e => setFormData({...formData, cover_url: e.target.value})} className="w-full bg-[#000000] border border-[#1f212a] rounded-xl p-3 text-xs text-white focus:border-[#FF0000] outline-none" placeholder="https://..." />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">{t('admin_desc')}</label>
-                  <textarea rows={3} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-3 text-xs text-white focus:border-[#268FFF] outline-none"></textarea>
+                  <textarea rows={3} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-[#000000] border border-[#1f212a] rounded-xl p-3 text-xs text-white focus:border-[#FF0000] outline-none"></textarea>
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">{t('admin_table_category')}</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-3 max-h-40 overflow-y-auto">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-[#000000] border border-[#1f212a] rounded-xl p-3 max-h-40 overflow-y-auto">
                     {categories.map(c => (
                       <label key={c.id} className="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
                         <input 
@@ -500,7 +516,7 @@ export const GamesManager = () => {
                               setFormData({ ...formData, category_ids: formData.category_ids.filter((id: string) => id !== c.id) });
                             }
                           }}
-                          className="w-4 h-4 rounded border-[#1f212a] bg-[#121318] text-[#268FFF] focus:ring-[#268FFF]" 
+                          className="w-4 h-4 rounded border-[#1f212a] bg-[#121318] text-[#FF0000] focus:ring-[#FF0000]" 
                         />
                         {c.name}
                       </label>
@@ -509,11 +525,11 @@ export const GamesManager = () => {
                 </div>
 
                 {/* Multiple Accounts Section */}
-                <div className="md:col-span-2 bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-4 space-y-4">
+                <div className="md:col-span-2 bg-[#000000] border border-[#1f212a] rounded-xl p-4 space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                        <Key className="w-4 h-4 text-[#268FFF]" />
+                        <Key className="w-4 h-4 text-[#FF0000]" />
                         Contas Steam do Jogo
                       </h4>
                       <p className="text-[11px] text-gray-500 mt-0.5">Cadastre uma ou mais contas para este jogo</p>
@@ -521,7 +537,7 @@ export const GamesManager = () => {
                     <button
                       type="button"
                       onClick={handleAddAccountField}
-                      className="bg-[#181920] hover:bg-[#20222c] border border-[#20222c] text-[#268FFF] font-semibold text-xs px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+                      className="bg-[#181920] hover:bg-[#20222c] border border-[#20222c] text-[#FF0000] font-semibold text-xs px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Adicionar Conta</span>
@@ -537,7 +553,7 @@ export const GamesManager = () => {
                             value={acc.name}
                             onChange={(e) => handleAccountChange(acc.id, 'name', e.target.value)}
                             placeholder={`Nome da Conta (ex: Conta ${index + 1})`}
-                            className="bg-[#0a0b0e] border border-[#1f212a] rounded-lg px-2.5 py-1 text-xs text-white font-semibold outline-none focus:border-[#268FFF] w-48"
+                            className="bg-[#000000] border border-[#1f212a] rounded-lg px-2.5 py-1 text-xs text-white font-semibold outline-none focus:border-[#FF0000] w-48"
                           />
                           {formData.accounts.length > 1 && (
                             <button
@@ -559,7 +575,7 @@ export const GamesManager = () => {
                               required
                               value={acc.steam_username}
                               onChange={(e) => handleAccountChange(acc.id, 'steam_username', e.target.value)}
-                              className="w-full bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-2.5 text-xs text-white focus:border-[#268FFF] outline-none"
+                              className="w-full bg-[#000000] border border-[#1f212a] rounded-xl p-2.5 text-xs text-white focus:border-[#FF0000] outline-none"
                               placeholder="steam_user"
                             />
                           </div>
@@ -570,7 +586,7 @@ export const GamesManager = () => {
                               required
                               value={acc.steam_password}
                               onChange={(e) => handleAccountChange(acc.id, 'steam_password', e.target.value)}
-                              className="w-full bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-2.5 text-xs text-white focus:border-[#268FFF] outline-none"
+                              className="w-full bg-[#000000] border border-[#1f212a] rounded-xl p-2.5 text-xs text-white focus:border-[#FF0000] outline-none"
                               placeholder="steam_pass"
                             />
                           </div>
@@ -582,15 +598,15 @@ export const GamesManager = () => {
 
                 <div className="md:col-span-2 mt-2">
                   <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">{t('admin_images')}</label>
-                  <textarea rows={3} value={formData.images} onChange={e => setFormData({...formData, images: e.target.value})} className="w-full bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-3 text-xs text-white focus:border-[#268FFF] outline-none" placeholder="Uma URL por linha..."></textarea>
+                  <textarea rows={3} value={formData.images} onChange={e => setFormData({...formData, images: e.target.value})} className="w-full bg-[#000000] border border-[#1f212a] rounded-xl p-3 text-xs text-white focus:border-[#FF0000] outline-none" placeholder="Uma URL por linha..."></textarea>
                 </div>
                 <div className="md:col-span-2 mt-2">
                   <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">{t('admin_reqs')}</label>
-                  <textarea rows={3} value={formData.requirements} onChange={e => setFormData({...formData, requirements: e.target.value})} className="w-full bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-3 text-xs text-white focus:border-[#268FFF] outline-none" placeholder="Processador, Memória, etc..."></textarea>
+                  <textarea rows={3} value={formData.requirements} onChange={e => setFormData({...formData, requirements: e.target.value})} className="w-full bg-[#000000] border border-[#1f212a] rounded-xl p-3 text-xs text-white focus:border-[#FF0000] outline-none" placeholder="Processador, Memória, etc..."></textarea>
                 </div>
                 
                 {/* Options for Lançamentos e Destaques */}
-                <div className="md:col-span-2 mt-2 flex flex-col gap-3 border border-[#1f212a] rounded-xl p-4 bg-[#0a0b0e]">
+                <div className="md:col-span-2 mt-2 flex flex-col gap-3 border border-[#1f212a] rounded-xl p-4 bg-[#000000]">
                   <label className="flex items-center gap-2.5 text-xs font-medium text-gray-300 cursor-pointer">
                     <input 
                       type="checkbox" 
@@ -600,7 +616,7 @@ export const GamesManager = () => {
                         admin_highlight_game: e.target.checked,
                         is_highlight: e.target.checked
                       })} 
-                      className="w-4 h-4 rounded border-[#1f212a] bg-[#121318] text-[#268FFF] focus:ring-[#268FFF]" 
+                      className="w-4 h-4 rounded border-[#1f212a] bg-[#121318] text-[#FF0000] focus:ring-[#FF0000]" 
                     />
                     <span className="text-white font-semibold">Exibir na seção "Lançamentos e Destaques"</span>
                   </label>
@@ -611,7 +627,7 @@ export const GamesManager = () => {
                       type="text" 
                       value={formData.highlight_text} 
                       onChange={e => setFormData({...formData, highlight_text: e.target.value})} 
-                      className="w-full bg-[#121318] border border-[#1f212a] rounded-xl p-2.5 text-xs text-white focus:border-[#268FFF] outline-none" 
+                      className="w-full bg-[#121318] border border-[#1f212a] rounded-xl p-2.5 text-xs text-white focus:border-[#FF0000] outline-none" 
                       placeholder="Ex: Jogue Agora" 
                     />
                   </div>
@@ -620,7 +636,7 @@ export const GamesManager = () => {
               
               <div className="pt-4 flex justify-end gap-3 border-t border-[#1f212a] mt-6">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-400 hover:text-white transition-colors cursor-pointer">{t('admin_cancel')}</button>
-                <button type="submit" className="bg-[#268FFF] hover:bg-[#1f7fe6] text-white font-semibold text-xs px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-sm">{t('admin_save_game')}</button>
+                <button type="submit" className="bg-[#FF0000] hover:bg-[#e60000] text-white font-semibold text-xs px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-sm">{t('admin_save_game')}</button>
               </div>
             </form>
           </div>

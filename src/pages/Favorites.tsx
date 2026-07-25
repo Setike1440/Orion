@@ -6,8 +6,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Breadcrumb } from '../components/Breadcrumb';
 import { sortGamesAlphanumeric } from '../lib/gameUtils';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export const Favorites = () => {
+  usePageTitle('Favoritos');
   const { user } = useAuth();
   const { t } = useLanguage();
   const [games, setGames] = useState<Game[]>([]);
@@ -67,7 +69,7 @@ export const Favorites = () => {
 
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] text-white">
+      <div className="min-h-screen bg-[#000000] flex flex-col items-center justify-center text-white py-12 px-4">
         <Heart className="w-12 h-12 text-gray-500 mb-4" />
         <h2 className="text-2xl font-bold mb-2">{t('login_req')}</h2>
         <p className="text-gray-400">{t('login_req_desc')}</p>
@@ -76,7 +78,7 @@ export const Favorites = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0b0e] py-8 md:py-12">
+    <div className="min-h-screen bg-[#000000] py-8 md:py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <Breadcrumb 
           items={[

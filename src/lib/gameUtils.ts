@@ -1,4 +1,4 @@
-export const sortGamesAlphanumeric = <T extends { title?: string }>(gamesList: T[]): T[] => {
+export function sortGamesAlphanumeric<T extends { title?: string }>(gamesList: T[]): T[] {
   return [...gamesList].sort((a, b) => {
     const titleA = (a.title || '').trim();
     const titleB = (b.title || '').trim();
@@ -14,4 +14,4 @@ export const sortGamesAlphanumeric = <T extends { title?: string }>(gamesList: T
     
     return titleA.localeCompare(titleB, 'pt-BR', { numeric: true, sensitivity: 'base' });
   });
-};
+}

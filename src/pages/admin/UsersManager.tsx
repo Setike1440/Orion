@@ -319,7 +319,7 @@ export const UsersManager = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-3">
-            <Users className="w-6 h-6 text-[#268FFF]" />
+            <Users className="w-6 h-6 text-[#FF0000]" />
             {t('admin_manage_users')}
           </h1>
           <p className="text-gray-400 text-xs sm:text-sm mt-1">Gerencie os acessos, nomes de usuário e permissões</p>
@@ -327,7 +327,7 @@ export const UsersManager = () => {
 
         <button 
           onClick={handleOpenAddModal}
-          className="bg-[#268FFF] hover:bg-[#1f7fe6] text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm shrink-0"
+          className="bg-[#FF0000] hover:bg-[#e60000] text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm shrink-0"
         >
           <UserPlus className="w-4 h-4" />
           <span>{t('admin_add_user')}</span>
@@ -335,7 +335,7 @@ export const UsersManager = () => {
       </div>
 
       {/* Filter and Search */}
-      <div className="bg-[#121318] border border-[#1f212a] rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+      <div className="bg-[#0d0e12] border border-[#1f212a] rounded-2xl p-4 flex items-center gap-3 shadow-sm">
         <Search className="w-4 h-4 text-gray-400 shrink-0" />
         <input 
           type="text" 
@@ -352,7 +352,7 @@ export const UsersManager = () => {
       </div>
 
       {/* Users Table */}
-      <div className="bg-[#121318] border border-[#1f212a] rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-[#0d0e12] border border-[#1f212a] rounded-2xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs sm:text-sm text-gray-400">
             <thead className="bg-[#181920] text-gray-300 border-b border-[#1f212a]">
@@ -395,7 +395,7 @@ export const UsersManager = () => {
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold capitalize ${
                         u.role === 'admin' 
-                          ? 'bg-[#268FFF]/10 text-[#268FFF] border border-[#268FFF]/30' 
+                          ? 'bg-[#FF0000]/10 text-[#FF0000] border border-[#FF0000]/30' 
                           : 'bg-[#181920] text-gray-300 border border-[#1f212a]'
                       }`}>
                         <Shield className="w-3 h-3" />
@@ -409,14 +409,14 @@ export const UsersManager = () => {
                       <div className="flex items-center justify-end gap-2">
                         <button 
                           onClick={() => handleOpenEditModal(u)}
-                          className="p-1.5 rounded-lg bg-[#181920] hover:bg-[#268FFF]/20 border border-[#1f212a] hover:border-[#268FFF]/40 text-gray-300 hover:text-[#268FFF] transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg bg-[#181920] hover:bg-[#FF0000]/20 border border-[#1f212a] hover:border-[#FF0000]/40 text-gray-300 hover:text-[#FF0000] transition-all cursor-pointer"
                           title="Editar Usuário"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button 
                           onClick={() => handleToggleRole(u)}
-                          className="px-3 py-1.5 rounded-lg bg-[#181920] hover:bg-[#268FFF]/20 border border-[#1f212a] hover:border-[#268FFF]/40 text-gray-300 hover:text-[#268FFF] transition-all text-xs font-medium cursor-pointer"
+                          className="px-3 py-1.5 rounded-lg bg-[#181920] hover:bg-[#FF0000]/20 border border-[#1f212a] hover:border-[#FF0000]/40 text-gray-300 hover:text-[#FF0000] transition-all text-xs font-medium cursor-pointer"
                           title="Alternar entre Admin e User"
                         >
                           {u.role === 'admin' ? 'Tornar Usuário' : 'Tornar Admin'}
@@ -441,10 +441,10 @@ export const UsersManager = () => {
       {/* Modal Criar/Editar Usuário */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#121318] border border-[#1f212a] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+          <div className="bg-[#0d0e12] border border-[#1f212a] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
             <div className="bg-[#181920] border-b border-[#1f212a] px-6 py-4 flex items-center justify-between">
               <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <UserPlus className="w-4 h-4 text-[#268FFF]" />
+                <UserPlus className="w-4 h-4 text-[#FF0000]" />
                 <span>{editingUser ? 'Editar Usuário' : t('admin_add_user')}</span>
               </h2>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white cursor-pointer">
@@ -460,7 +460,7 @@ export const UsersManager = () => {
                   value={newUserUsername}
                   onChange={e => setNewUserUsername(e.target.value)}
                   placeholder="Ex: PedroGamer"
-                  className="w-full bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-3 text-xs text-white outline-none focus:border-[#268FFF]"
+                  className="w-full bg-[#000000] border border-[#1f212a] rounded-xl p-3 text-xs text-white outline-none focus:border-[#FF0000]"
                 />
               </div>
 
@@ -472,7 +472,7 @@ export const UsersManager = () => {
                   value={newUserEmail}
                   onChange={e => setNewUserEmail(e.target.value)}
                   placeholder="usuario@email.com"
-                  className="w-full bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-3 text-xs text-white outline-none focus:border-[#268FFF]"
+                  className="w-full bg-[#000000] border border-[#1f212a] rounded-xl p-3 text-xs text-white outline-none focus:border-[#FF0000]"
                 />
               </div>
 
@@ -485,7 +485,7 @@ export const UsersManager = () => {
                     value={newUserPassword}
                     onChange={e => setNewUserPassword(e.target.value)}
                     placeholder="Mínimo 6 caracteres"
-                    className="w-full bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-3 text-xs text-white outline-none focus:border-[#268FFF]"
+                    className="w-full bg-[#000000] border border-[#1f212a] rounded-xl p-3 text-xs text-white outline-none focus:border-[#FF0000]"
                   />
                 </div>
               )}
@@ -495,7 +495,7 @@ export const UsersManager = () => {
                 <select 
                   value={newUserRole}
                   onChange={e => setNewUserRole(e.target.value as any)}
-                  className="w-full bg-[#0a0b0e] border border-[#1f212a] rounded-xl p-3 text-xs text-white outline-none focus:border-[#268FFF]"
+                  className="w-full bg-[#000000] border border-[#1f212a] rounded-xl p-3 text-xs text-white outline-none focus:border-[#FF0000]"
                 >
                   <option value="user">Usuário Comum (user)</option>
                   <option value="admin">Administrador (admin)</option>
@@ -513,7 +513,7 @@ export const UsersManager = () => {
                 <button 
                   type="submit" 
                   disabled={saving}
-                  className="bg-[#268FFF] hover:bg-[#1f7fe6] text-white font-semibold text-xs px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                  className="bg-[#FF0000] hover:bg-[#e60000] text-white font-semibold text-xs px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-sm disabled:opacity-50"
                 >
                   {saving ? 'Salvando...' : editingUser ? 'Salvar Alterações' : t('admin_add_user')}
                 </button>

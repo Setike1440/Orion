@@ -25,7 +25,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 animate-in fade-in duration-200">
       <div className="bg-[#121318] border border-[#1f212a] rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
         <div className="flex items-start gap-3.5">
           <div
@@ -34,7 +34,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                 ? 'bg-red-500/10 border border-red-500/20 text-red-400'
                 : variant === 'success'
                 ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                : 'bg-[#268FFF]/10 border border-[#268FFF]/20 text-[#268FFF]'
+                : 'bg-[#FF0000]/10 border border-[#FF0000]/20 text-[#FF0000]'
             }`}
           >
             {variant === 'danger' ? (
@@ -65,7 +65,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white transition-all cursor-pointer shadow-sm ${
               variant === 'danger'
                 ? 'bg-red-600 hover:bg-red-700'
-                : 'bg-[#268FFF] hover:bg-[#1f7fe6]'
+                : 'bg-[#FF0000] hover:bg-[#e60000]'
             }`}
           >
             {confirmText}
@@ -93,7 +93,7 @@ export const AdminToast: React.FC<ToastProps> = ({ message, type = 'success', on
             ? 'bg-red-500/10 text-red-400'
             : type === 'success'
             ? 'bg-emerald-500/10 text-emerald-400'
-            : 'bg-[#268FFF]/10 text-[#268FFF]'
+            : 'bg-[#FF0000]/10 text-[#FF0000]'
         }`}
       >
         {type === 'error' ? (

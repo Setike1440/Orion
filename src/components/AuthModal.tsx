@@ -14,9 +14,27 @@ export const AuthModal: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [saveCredentials, setSaveCredentials] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isAuthModalOpen) {
+      document.body.style.overflow = 'hidden';
+      // Load saved email if exists
+      const savedEmail = localStorage.getItem('orion_saved_login_email');
+      if (savedEmail) {
+        setEmail(savedEmail);
+      }
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isAuthModalOpen]);
 
   useEffect(() => {
     setTab(authModalTab);
@@ -39,6 +57,14 @@ export const AuthModal: React.FC = () => {
           password,
         });
         if (error) throw error;
+
+        // Save credentials if option checked
+        if (saveCredentials) {
+          localStorage.setItem('orion_saved_login_email', email);
+        } else {
+          localStorage.removeItem('orion_saved_login_email');
+        }
+
         setSuccess('Login realizado com sucesso!');
         setTimeout(() => {
           closeAuthModal();
@@ -79,7 +105,7 @@ export const AuthModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 animate-fadeIn">
       {/* Click outside backdrop */}
       <div 
         className="absolute inset-0" 
@@ -87,7 +113,7 @@ export const AuthModal: React.FC = () => {
       />
 
       {/* Modal Dialog */}
-      <div className="relative w-full max-w-md bg-[#121318] border border-[#1f212a] rounded-2xl p-6 sm:p-7 shadow-2xl z-10 overflow-hidden">
+      <div className="relative w-full max-w-md bg-[#0d0e12] border border-[#1f212a] rounded-2xl p-6 sm:p-7 shadow-2xl z-10 overflow-hidden">
         {/* Close Button */}
         <button
           onClick={closeAuthModal}
@@ -99,8 +125,8 @@ export const AuthModal: React.FC = () => {
 
         {/* Header Branding */}
         <div className="flex flex-col items-center mb-6 text-center">
-          <div className="w-12 h-12 rounded-xl bg-[#268FFF]/10 border border-[#268FFF]/20 flex items-center justify-center mb-3 text-[#268FFF]">
-            <Gamepad2 className="w-6 h-6" />
+          <div className="w-12 h-12 rounded-xl bg-[#FF0000]/10 border border-[#FF0000]/20 flex items-center justify-center mb-3 p-2 text-[#FF0000]">
+            <img src="https://i.imgur.com/sYDoUj4.png" alt="Orion Logo" className="w-6 h-6 object-contain" />
           </div>
           <h2 className="text-xl font-bold text-white tracking-tight">
             {tab === 'login' ? 'Acessar Conta' : 'Criar Nova Conta'}
@@ -113,13 +139,13 @@ export const AuthModal: React.FC = () => {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex bg-[#0a0b0e] p-1 rounded-xl mb-5 border border-[#1f212a]">
+        <div className="flex bg-[#000000] p-1 rounded-xl mb-5 border border-[#1f212a]">
           <button
             type="button"
             onClick={() => { setTab('login'); setError(null); setSuccess(null); }}
             className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
               tab === 'login'
-                ? 'bg-[#268FFF] text-white shadow-sm'
+                ? 'bg-[#FF0000] text-white shadow-sm'
                 : 'text-gray-400 hover:text-white'
             }`}
           >
@@ -130,7 +156,7 @@ export const AuthModal: React.FC = () => {
             onClick={() => { setTab('register'); setError(null); setSuccess(null); }}
             className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
               tab === 'register'
-                ? 'bg-[#268FFF] text-white shadow-sm'
+                ? 'bg-[#FF0000] text-white shadow-sm'
                 : 'text-gray-400 hover:text-white'
             }`}
           >
@@ -147,8 +173,8 @@ export const AuthModal: React.FC = () => {
         )}
 
         {success && (
-          <div className="bg-[#268FFF]/10 border border-[#268FFF]/30 text-[#268FFF] text-xs rounded-xl p-3 mb-4 flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-[#268FFF] shrink-0" />
+          <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs rounded-xl p-3 mb-4 flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>{success}</span>
           </div>
         )}
@@ -167,7 +193,7 @@ export const AuthModal: React.FC = () => {
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="SeuNomeOuNick"
                   required
-                  className="w-full bg-[#0a0b0e] border border-[#20222c] focus:border-[#268FFF] focus:ring-1 focus:ring-[#268FFF]/20 rounded-xl py-2.5 pl-9 pr-4 text-xs text-white focus:outline-none transition-all placeholder-gray-600"
+                  className="w-full bg-[#000000] border border-[#20222c] focus:border-[#FF0000] focus:ring-1 focus:ring-[#FF0000]/20 rounded-xl py-2.5 pl-9 pr-4 text-xs text-white focus:outline-none transition-all placeholder-gray-600"
                 />
                 <Gamepad2 className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
               </div>
@@ -185,7 +211,7 @@ export const AuthModal: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="seu.email@exemplo.com"
                 required
-                className="w-full bg-[#0a0b0e] border border-[#20222c] focus:border-[#268FFF] focus:ring-1 focus:ring-[#268FFF]/20 rounded-xl py-2.5 pl-9 pr-4 text-xs text-white focus:outline-none transition-all placeholder-gray-600"
+                className="w-full bg-[#000000] border border-[#20222c] focus:border-[#FF0000] focus:ring-1 focus:ring-[#FF0000]/20 rounded-xl py-2.5 pl-9 pr-4 text-xs text-white focus:outline-none transition-all placeholder-gray-600"
               />
               <Mail className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
             </div>
@@ -202,7 +228,7 @@ export const AuthModal: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="w-full bg-[#0a0b0e] border border-[#20222c] focus:border-[#268FFF] focus:ring-1 focus:ring-[#268FFF]/20 rounded-xl py-2.5 pl-9 pr-9 text-xs text-white focus:outline-none transition-all placeholder-gray-600"
+                className="w-full bg-[#000000] border border-[#20222c] focus:border-[#FF0000] focus:ring-1 focus:ring-[#FF0000]/20 rounded-xl py-2.5 pl-9 pr-9 text-xs text-white focus:outline-none transition-all placeholder-gray-600"
               />
               <Lock className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
               <button
@@ -214,6 +240,32 @@ export const AuthModal: React.FC = () => {
               </button>
             </div>
           </div>
+
+          {tab === 'login' && (
+            <div 
+              onClick={() => setSaveCredentials(!saveCredentials)}
+              className="flex items-center justify-between gap-2.5 pt-1 pb-0.5 cursor-pointer select-none group"
+            >
+              <span className="font-medium text-xs text-gray-300 group-hover:text-white transition-colors">
+                {t('save_credentials_q')}
+              </span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={saveCredentials}
+                onClick={(e) => { e.stopPropagation(); setSaveCredentials(!saveCredentials); }}
+                className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  saveCredentials ? 'bg-[#FF0000]' : 'bg-[#20222c]'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                    saveCredentials ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+          )}
 
           {tab === 'register' && (
             <div>
@@ -227,7 +279,7 @@ export const AuthModal: React.FC = () => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full bg-[#0a0b0e] border border-[#20222c] focus:border-[#268FFF] focus:ring-1 focus:ring-[#268FFF]/20 rounded-xl py-2.5 pl-9 pr-4 text-xs text-white focus:outline-none transition-all placeholder-gray-600"
+                  className="w-full bg-[#000000] border border-[#20222c] focus:border-[#FF0000] focus:ring-1 focus:ring-[#FF0000]/20 rounded-xl py-2.5 pl-9 pr-4 text-xs text-white focus:outline-none transition-all placeholder-gray-600"
                 />
                 <Lock className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
               </div>
@@ -237,7 +289,7 @@ export const AuthModal: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 bg-[#268FFF] hover:bg-[#1f7fe6] text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm disabled:opacity-50 cursor-pointer text-xs"
+            className="w-full mt-2 bg-[#FF0000] hover:bg-[#e60000] text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm disabled:opacity-50 cursor-pointer text-xs"
           >
             {loading ? (
               <span className="flex items-center gap-2">
@@ -261,7 +313,7 @@ export const AuthModal: React.FC = () => {
               setError(null);
               setSuccess(null);
             }}
-            className="text-[#268FFF] hover:underline font-semibold cursor-pointer"
+            className="text-[#FF0000] hover:underline font-semibold cursor-pointer"
           >
             {tab === 'login' ? 'Cadastre-se grátis' : 'Fazer Login'}
           </button>

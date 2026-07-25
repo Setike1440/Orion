@@ -7,22 +7,22 @@ export const Footer = () => {
   const { t } = useLanguage();
   
   return (
-    <footer className="bg-[#050507] border-t border-[#1f212a] pt-12 pb-8 mt-12 sm:mt-16">
+    <footer className="bg-[#0d0e12] border-t border-[#1f212a] pt-12 pb-8 mt-12 sm:mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
           
           {/* Brand */}
           <div className="col-span-1 md:col-span-1">
             <Link to="/" className="flex items-center gap-2 mb-4 group">
-              <img src="https://i.imgur.com/GSmcsvJ.png" alt="Orion" className="h-5 sm:h-6 w-auto object-contain" />
+              <img src="https://i.imgur.com/0a36M0M.png" alt="Orion" className="h-5 sm:h-6 w-auto object-contain" />
             </Link>
             <p className="text-xs sm:text-sm text-gray-400 mb-6 leading-relaxed">
               {t('footer_desc')}
             </p>
             <div className="flex gap-3">
-              <a href="#" className="w-8 h-8 rounded-lg bg-[#121318] border border-[#20222c] hover:border-[#268FFF] text-gray-400 hover:text-white flex items-center justify-center transition-all cursor-pointer"><Twitter className="w-4 h-4" /></a>
-              <a href="#" className="w-8 h-8 rounded-lg bg-[#121318] border border-[#20222c] hover:border-[#268FFF] text-gray-400 hover:text-white flex items-center justify-center transition-all cursor-pointer"><Instagram className="w-4 h-4" /></a>
-              <a href="#" className="w-8 h-8 rounded-lg bg-[#121318] border border-[#20222c] hover:border-[#268FFF] text-gray-400 hover:text-white flex items-center justify-center transition-all cursor-pointer"><Github className="w-4 h-4" /></a>
+              <a href="#" className="w-8 h-8 rounded-lg bg-[#1a1b24] border border-[#20222c] hover:bg-[#222432] hover:border-[#383b4a] text-gray-400 hover:text-white flex items-center justify-center transition-all cursor-pointer"><Twitter className="w-4 h-4" /></a>
+              <a href="#" className="w-8 h-8 rounded-lg bg-[#1a1b24] border border-[#20222c] hover:bg-[#222432] hover:border-[#383b4a] text-gray-400 hover:text-white flex items-center justify-center transition-all cursor-pointer"><Instagram className="w-4 h-4" /></a>
+              <a href="#" className="w-8 h-8 rounded-lg bg-[#1a1b24] border border-[#20222c] hover:bg-[#222432] hover:border-[#383b4a] text-gray-400 hover:text-white flex items-center justify-center transition-all cursor-pointer"><Github className="w-4 h-4" /></a>
             </div>
           </div>
 
@@ -52,7 +52,7 @@ export const Footer = () => {
             <button 
               type="button"
               onClick={() => window.open('https://wa.me/', '_blank')}
-              className="bg-[#121318] border border-[#252733] hover:bg-[#268FFF] hover:text-white hover:border-[#268FFF] text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center justify-center w-full cursor-pointer shadow-sm"
+              className="bg-[#FF0000] border border-[#FF0000] hover:bg-[#e60000] hover:border-[#e60000] text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center justify-center w-full cursor-pointer shadow-md"
             >
               {t('support_talk')}
             </button>

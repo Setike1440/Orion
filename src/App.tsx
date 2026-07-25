@@ -13,13 +13,14 @@ import { Settings } from './pages/Settings';
 import { CategoryPage } from './pages/CategoryPage';
 import { HowItWorks } from './pages/HowItWorks';
 import { CanIRunIt } from './pages/CanIRunIt';
+import { SuggestGame } from './pages/SuggestGame';
 import { AdminRoutes } from './pages/admin/AdminRoutes';
 import { AuthModal } from './components/AuthModal';
 import { ScrollToTop } from './components/ScrollToTop';
 
 const Layout = () => {
   return (
-    <div className="flex flex-col min-h-screen bg-[#0a0b0e] text-[#e5e7eb]">
+    <div className="flex flex-col min-h-screen bg-[#000000] text-[#e5e7eb]">
       <ScrollToTop />
       <Navbar />
       <main className="flex-1">
@@ -65,6 +66,8 @@ export default function App() {
             <Route path="how-it-works" element={<HowItWorks />} />
             <Route path="requisitos-do-pc" element={<CanIRunIt />} />
             <Route path="can-i-run" element={<CanIRunIt />} />
+            <Route path="sugerir-jogo" element={<SuggestGame />} />
+            <Route path="pedir-jogo" element={<SuggestGame />} />
           </Route>
           <Route path="/painel/*" element={<AdminRoutes />} />
           <Route path="/admin/*" element={<AdminRoutes />} />

@@ -2,13 +2,16 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { GameCard, Game } from '../components/GameCard';
+import { Skeleton } from '../components/Skeleton';
 import { Flame, Sparkles, Search, Gamepad2, LayoutGrid, ChevronLeft, ChevronRight, ArrowRight, HelpCircle, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { DEFAULT_CATEGORIES } from '../data/categoriesData';
 import { sortGamesAlphanumeric } from '../lib/gameUtils';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export const Home = () => {
+  usePageTitle('Orion');
   const { user } = useAuth();
   const { t } = useLanguage();
   const [games, setGames] = useState<Game[]>([]);
@@ -197,11 +200,13 @@ export const Home = () => {
         }
 
         const custom = localHighlights[game.id];
+        const isHighlight = custom ? Boolean(custom.is_most_played) : Boolean(game.admin_highlight_game || game.is_most_played);
 
         return {
           ...game,
           category: firstCategory,
-          admin_highlight_game: custom?.is_most_played ?? game.admin_highlight_game ?? game.is_most_played ?? game.is_highlight,
+          admin_highlight_game: isHighlight,
+          is_most_played: isHighlight,
           admin_highlight_text: custom?.highlight_text || game.highlight_text || game.admin_highlight_text,
           highlight_text: custom?.highlight_text || game.highlight_text || game.admin_highlight_text
         };
@@ -230,12 +235,12 @@ export const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0b0e]">
+    <div className="min-h-screen bg-[#000000]">
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 md:pt-16 pb-6">
         <div className="flex flex-col items-center justify-center text-center max-w-3xl mx-auto mb-12">
           <h1 className="text-3xl sm:text-5xl font-bold text-white mb-4 tracking-tight leading-[1.15]">
-            {t('hero_title_1')} <span className="text-[#268FFF]">{t('hero_title_2')}</span>
+            {t('hero_title_1')} <span className="text-[#FF0000]">{t('hero_title_2')}</span>
           </h1>
           <p className="text-gray-400 max-w-lg text-xs sm:text-sm md:text-base leading-relaxed mb-8">
             {t('hero_desc')}
@@ -248,10 +253,10 @@ export const Home = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder={t('hero_search')} 
-                className="w-full bg-[#121318] border border-[#20222c] rounded-full py-3.5 px-5 pl-12 pr-10 text-sm focus:outline-none focus:border-[#268FFF] focus:ring-2 focus:ring-[#268FFF]/15 transition-all text-white placeholder-gray-500 shadow-sm"
+                className="w-full bg-[#121318] border border-[#20222c] rounded-full py-3.5 px-5 pl-12 pr-10 text-sm focus:outline-none focus:border-[#FF0000] focus:ring-2 focus:ring-[#FF0000]/15 transition-all text-white placeholder-gray-500 shadow-sm"
               />
               <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                <Search className="w-4 h-4 text-gray-500 group-focus-within:text-[#268FFF] transition-colors" />
+                <Search className="w-4 h-4 text-gray-500 group-focus-within:text-[#FF0000] transition-colors" />
               </div>
               {searchTerm && (
                 <button
@@ -267,9 +272,9 @@ export const Home = () => {
 
             <Link 
               to="/como-funciona"
-              className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-white transition-colors cursor-pointer"
+              className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-white transition-colors cursor-pointer group/link"
             >
-              <HelpCircle className="w-3.5 h-3.5 text-gray-400 group-hover:text-white transition-all" />
+              <HelpCircle className="w-3.5 h-3.5 text-gray-400 group-hover/link:text-white transition-all" />
               <span>{t('how_it_works')}</span>
             </Link>
           </div>
@@ -278,12 +283,12 @@ export const Home = () => {
         {searchTerm ? (
           <div className="mb-12">
             <div className="flex items-center gap-2 mb-6">
-              <Search className="w-4 h-4 text-[#268FFF]" />
-              <h2 className="text-lg font-semibold text-white tracking-tight">Resultados da busca</h2>
+              <Search className="w-4 h-4 text-[#FF0000]" />
+              <h2 className="text-lg font-semibold text-white tracking-tight">{t('search_results')}</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {sortGamesAlphanumeric(games.filter(g => g.title.toLowerCase().includes(searchTerm.toLowerCase()))).length > 0 ? (
-                sortGamesAlphanumeric(games.filter(g => g.title.toLowerCase().includes(searchTerm.toLowerCase()))).map((game) => <GameCard key={game.id} game={game} />)
+              {sortGamesAlphanumeric<Game>(games.filter(g => g.title.toLowerCase().includes(searchTerm.toLowerCase()))).length > 0 ? (
+                sortGamesAlphanumeric<Game>(games.filter(g => g.title.toLowerCase().includes(searchTerm.toLowerCase()))).map((game) => <GameCard key={game.id} game={game} />)
               ) : (
                 <div className="col-span-full py-12 flex flex-col items-center justify-center text-gray-500 bg-[#121318] border border-[#1f212a] rounded-2xl">
                   <Sparkles className="w-7 h-7 mb-3 opacity-40 text-gray-400" />
@@ -293,9 +298,26 @@ export const Home = () => {
             </div>
           </div>
         ) : loading ? (
-          <div className="mb-12">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {Array.from({ length: 8 }).map((_, i) => <GameCard key={i} isLoading />)}
+          <div className="space-y-10 mb-12">
+            {/* Skeleton Categories row */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <Skeleton className="h-6 w-32 rounded-lg" />
+                <Skeleton className="h-6 w-40 rounded-lg" />
+              </div>
+              <div className="flex gap-4 overflow-hidden">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Skeleton key={i} className="h-20 w-44 rounded-2xl shrink-0" />
+                ))}
+              </div>
+            </div>
+
+            {/* Skeleton Games grid */}
+            <div>
+              <Skeleton className="h-6 w-40 rounded-lg mb-4" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                {Array.from({ length: 8 }).map((_, i) => <GameCard key={i} isLoading />)}
+              </div>
             </div>
           </div>
         ) : (
@@ -305,7 +327,7 @@ export const Home = () => {
               <div className="mb-12">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <LayoutGrid className="w-4 h-4 text-[#268FFF]" />
+                    <LayoutGrid className="w-4 h-4 text-[#FF0000]" />
                     <h2 className="text-base sm:text-lg font-semibold text-white tracking-tight">{t('categories')}</h2>
                   </div>
                   {/* Carousel Indicator & Arrow Controls */}
@@ -317,18 +339,18 @@ export const Home = () => {
                       <button
                         type="button"
                         onClick={() => scrollCategories('left')}
-                        className="w-8 h-8 rounded-full bg-[#121318] border border-[#20222c] hover:border-[#268FFF] text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer shadow-sm"
+                        className="w-8 h-8 rounded-full bg-[#FF0000] hover:bg-[#e60000] border border-[#FF0000] text-white flex items-center justify-center transition-all cursor-pointer shadow-md"
                         title="Anterior"
                       >
-                        <ChevronLeft className="w-4 h-4" />
+                        <ChevronLeft className="w-4 h-4 text-white" />
                       </button>
                       <button
                         type="button"
                         onClick={() => scrollCategories('right')}
-                        className="w-8 h-8 rounded-full bg-[#121318] border border-[#20222c] hover:border-[#268FFF] text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer shadow-sm"
+                        className="w-8 h-8 rounded-full bg-[#FF0000] hover:bg-[#e60000] border border-[#FF0000] text-white flex items-center justify-center transition-all cursor-pointer shadow-md"
                         title="Próximo"
                       >
-                        <ChevronRight className="w-4 h-4" />
+                        <ChevronRight className="w-4 h-4 text-white" />
                       </button>
                     </div>
                   </div>
@@ -338,12 +360,12 @@ export const Home = () => {
                 <div className="relative group/carousel">
                   {/* Left Fade Mask (only if scrolled) */}
                   {canScrollCategoriesLeft && (
-                    <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-r from-[#0a0b0e] to-transparent z-20 transition-opacity duration-300" />
+                    <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-r from-[#000000] to-transparent z-20 transition-opacity duration-300" />
                   )}
                   
                   {/* Right Fade Mask (only if can scroll further right) */}
                   {canScrollCategoriesRight && (
-                    <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 sm:w-20 bg-gradient-to-l from-[#0a0b0e] to-transparent z-20 transition-opacity duration-300" />
+                    <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 sm:w-20 bg-gradient-to-l from-[#000000] to-transparent z-20 transition-opacity duration-300" />
                   )}
 
                   <div 
@@ -355,21 +377,21 @@ export const Home = () => {
                       <Link 
                         key={c.id || c.slug} 
                         to={`/categoria/${c.slug}`}
-                        className="group relative flex-none w-36 sm:w-44 aspect-[3/4] rounded-2xl overflow-hidden bg-[#121318] border border-[#1f212a] hover:border-[#268FFF]/40 transition-all duration-200 hover:-translate-y-1 flex flex-col justify-end p-3.5 cursor-pointer shadow-sm"
+                        className="group relative flex-none w-36 sm:w-44 aspect-[3/4] rounded-2xl overflow-hidden bg-[#121318] border border-[#1f212a] hover:border-[#FF0000]/60 transition-all duration-200 hover:-translate-y-1 flex flex-col justify-end p-3 cursor-pointer shadow-md"
                       >
-                        {/* Soft background overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0b0e] via-[#0a0b0e]/50 to-transparent z-10 opacity-80 group-hover:opacity-70 transition-opacity" />
+                        {/* Gradient shadow overlay ONLY on hover */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 z-10 transition-opacity duration-300" />
                         <img 
                           src={c.image_url || 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?auto=format&fit=crop&q=80&w=400'} 
                           alt={c.name}
                           className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
-                        <div className="relative z-20 flex flex-col items-center text-center">
-                          <span className="flex items-center gap-1 text-[10px] font-semibold text-white tracking-wide uppercase mb-0.5 opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-y-1 group-hover:translate-y-0">
+                        <div className="relative z-20 flex flex-col items-center text-center w-full pb-1">
+                          <span className="flex items-center gap-1 text-[10px] font-bold text-white tracking-wide uppercase mb-0.5 opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-y-1 group-hover:translate-y-0 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                             <span>{t('see_games') || 'Ver Jogos'}</span>
-                            <ArrowRight className="w-3 h-3 text-white" />
+                            <ArrowRight className="w-3 h-3 text-[#FF0000]" />
                           </span>
-                          <h3 className="text-white font-semibold text-xs sm:text-sm group-hover:text-[#268FFF] transition-colors drop-shadow-sm">
+                          <h3 className="text-white font-bold text-xs sm:text-sm group-hover:text-[#FF0000] transition-colors drop-shadow-[0_2px_6px_rgba(0,0,0,1)]">
                             {c.name}
                           </h3>
                         </div>
@@ -387,7 +409,7 @@ export const Home = () => {
                 <div className="mb-12">
                   <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-[#268FFF]" />
+                      <Sparkles className="w-4 h-4 text-[#FF0000]" />
                       <h2 className="text-base sm:text-lg font-semibold text-white tracking-tight">{t('recently_added')}</h2>
                     </div>
                     {/* Carousel Indicator & Controls */}
@@ -399,18 +421,18 @@ export const Home = () => {
                         <button
                           type="button"
                           onClick={() => scrollRecentlyAdded('left')}
-                          className="w-8 h-8 rounded-full bg-[#121318] border border-[#20222c] hover:border-[#268FFF] text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer shadow-sm"
+                          className="w-8 h-8 rounded-full bg-[#FF0000] hover:bg-[#e60000] border border-[#FF0000] text-white flex items-center justify-center transition-all cursor-pointer shadow-md"
                           title="Anterior"
                         >
-                          <ChevronLeft className="w-4 h-4" />
+                          <ChevronLeft className="w-4 h-4 text-white" />
                         </button>
                         <button
                           type="button"
                           onClick={() => scrollRecentlyAdded('right')}
-                          className="w-8 h-8 rounded-full bg-[#121318] border border-[#20222c] hover:border-[#268FFF] text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer shadow-sm"
+                          className="w-8 h-8 rounded-full bg-[#FF0000] hover:bg-[#e60000] border border-[#FF0000] text-white flex items-center justify-center transition-all cursor-pointer shadow-md"
                           title="Próximo"
                         >
-                          <ChevronRight className="w-4 h-4" />
+                          <ChevronRight className="w-4 h-4 text-white" />
                         </button>
                       </div>
                     </div>
@@ -433,8 +455,8 @@ export const Home = () => {
 
             {/* Section: Lançamentos e Destaques */}
             {(() => {
-              const highlightedGames = games.filter(g => (g as any).admin_highlight_game || (g as any).is_most_played || g.is_highlight || (g.category_ids && g.category_ids.includes('admin-highline-game')));
-              const displayHighlights = (highlightedGames.length > 0 ? highlightedGames : games).slice(0, 8);
+              const highlightedGames = games.filter(g => (g as any).admin_highlight_game === true || (g as any).is_most_played === true);
+              const displayHighlights = highlightedGames.slice(0, 8);
               
               if (displayHighlights.length === 0) return null;
               
@@ -442,7 +464,7 @@ export const Home = () => {
                 <div className="mb-12">
                   <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-2">
-                      <Flame className="w-4 h-4 text-[#268FFF]" />
+                      <Flame className="w-4 h-4 text-[#FF0000]" />
                       <h2 className="text-base sm:text-lg font-semibold text-white tracking-tight">{t('releases_highlights') || 'Lançamentos e destaques'}</h2>
                     </div>
                     {/* Carousel Indicator & Controls */}
@@ -454,18 +476,18 @@ export const Home = () => {
                         <button
                           type="button"
                           onClick={() => scrollMostPlayed('left')}
-                          className="w-8 h-8 rounded-full bg-[#121318] border border-[#20222c] hover:border-[#268FFF] text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer shadow-sm"
+                          className="w-8 h-8 rounded-full bg-[#FF0000] hover:bg-[#e60000] border border-[#FF0000] text-white flex items-center justify-center transition-all cursor-pointer shadow-md"
                           title="Anterior"
                         >
-                          <ChevronLeft className="w-4 h-4" />
+                          <ChevronLeft className="w-4 h-4 text-white" />
                         </button>
                         <button
                           type="button"
                           onClick={() => scrollMostPlayed('right')}
-                          className="w-8 h-8 rounded-full bg-[#121318] border border-[#20222c] hover:border-[#268FFF] text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer shadow-sm"
+                          className="w-8 h-8 rounded-full bg-[#FF0000] hover:bg-[#e60000] border border-[#FF0000] text-white flex items-center justify-center transition-all cursor-pointer shadow-md"
                           title="Próximo"
                         >
-                          <ChevronRight className="w-4 h-4" />
+                          <ChevronRight className="w-4 h-4 text-white" />
                         </button>
                       </div>
                     </div>
@@ -489,11 +511,11 @@ export const Home = () => {
             {/* Section: All Games */}
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-5">
-                <Gamepad2 className="w-4 h-4 text-[#268FFF]" />
+                <Gamepad2 className="w-4 h-4 text-[#FF0000]" />
                 <h2 className="text-base sm:text-lg font-semibold text-white tracking-tight">{t('all_games')}</h2>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                {sortGamesAlphanumeric(games).map((game) => <GameCard key={`all-${game.id}`} game={game} />)}
+                {sortGamesAlphanumeric<Game>(games).map((game) => <GameCard key={`all-${game.id}`} game={game} />)}
               </div>
             </div>
           </>

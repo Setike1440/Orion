@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -17,16 +17,27 @@ export const NotificationBell = () => {
   const { t } = useLanguage();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isClickedOpen, setIsClickedOpen] = useState(false);
   
-  // A simple notification sound (using a reliable data URI for a short ping)
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsClickedOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
     
     // Create audio element
-    audioRef.current = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU'); // Mock valid placeholder, but let's use a real sound url or generate a tiny beep using AudioContext instead to be safe.
+    audioRef.current = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU');
     
     fetchNotifications();
 
@@ -86,32 +97,61 @@ export const NotificationBell = () => {
     }
   };
 
+  const clearNotifications = () => {
+    setNotifications([]);
+    setUnreadCount(0);
+  };
+
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsClickedOpen(prev => !prev);
+    setUnreadCount(0);
+  };
+
+  const showDropdown = isHovered || isClickedOpen;
+
   if (!user) return null;
 
   return (
     <div 
+      ref={containerRef}
       className="relative flex items-center justify-center h-full"
       onMouseEnter={() => {
-        setShowDropdown(true);
+        setIsHovered(true);
         setUnreadCount(0);
       }}
-      onMouseLeave={() => setShowDropdown(false)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <button 
         type="button"
-        className="w-9 h-9 rounded-full bg-[#121318] border border-[#20222c] hover:border-[#268FFF] text-gray-400 hover:text-white flex items-center justify-center transition-all shadow-sm relative cursor-pointer"
+        onClick={handleButtonClick}
+        className="w-9 h-9 rounded-full bg-[#0d0e12] border border-[#20222c] hover:bg-[#1a1c26] hover:border-[#3a3d52] text-gray-400 hover:text-white flex items-center justify-center transition-all shadow-sm relative group cursor-pointer"
         title={t('notifications')}
       >
-        <Bell className="w-4 h-4" />
+        <Bell className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-[#121318]"></span>
+          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-[#0d0e12]"></span>
         )}
       </button>
 
       {showDropdown && (
-        <div className="absolute right-0 top-[100%] mt-2 w-80 bg-[#121318] border border-[#1f212a] rounded-xl shadow-2xl z-50 overflow-hidden">
-          <div className="px-4 py-3 border-b border-[#1f212a] flex justify-between items-center bg-[#181920]">
+        <div 
+          onClick={(e) => e.stopPropagation()}
+          className="absolute right-0 top-[100%] mt-2 w-80 bg-[#0d0e12] border border-[#1f212a] rounded-xl shadow-2xl z-50 overflow-hidden"
+        >
+          <div className="px-4 py-3 border-b border-[#1f212a] flex justify-between items-center bg-[#13141a]">
             <h3 className="text-xs font-semibold text-white uppercase tracking-wider">{t('notifications')}</h3>
+            {notifications.length > 0 && (
+              <button
+                type="button"
+                onClick={clearNotifications}
+                className="text-[11px] font-medium text-gray-400 hover:text-[#FF0000] transition-colors cursor-pointer flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-[#1f212a]"
+                title={t('clear')}
+              >
+                <Trash2 className="w-3 h-3 text-gray-400 hover:text-[#FF0000]" />
+                <span>{t('clear')}</span>
+              </button>
+            )}
           </div>
           <div className="max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (

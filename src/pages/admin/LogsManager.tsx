@@ -2,12 +2,28 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { ScrollText, Search, RefreshCw, Trash2, Clock, User, Info } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { ConfirmModal, AdminToast } from '../../components/admin/AdminModal';
+import { usePageTitle } from '../../hooks/usePageTitle';
 
 export const LogsManager = () => {
+  usePageTitle('Logs de Atividade');
   const { t } = useLanguage();
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
+  const [confirmModalState, setConfirmModalState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
 
   useEffect(() => {
     fetchLogs();
@@ -62,14 +78,24 @@ export const LogsManager = () => {
     }
   };
 
-  const handleClearLogs = async () => {
-    if (!confirm('Deseja realmente limpar todos os registros de logs?')) return;
-    try {
-      await supabase.from('logs').delete().neq('id', '0');
-      setLogs([]);
-    } catch (error: any) {
-      alert('Erro ao limpar logs: ' + error.message);
-    }
+  const handleClearLogs = () => {
+    setConfirmModalState({
+      isOpen: true,
+      title: 'Limpar Logs',
+      message: 'Deseja realmente limpar todos os registros de logs?',
+      onConfirm: async () => {
+        setConfirmModalState(prev => ({ ...prev, isOpen: false }));
+        try {
+          await supabase.from('logs').delete().neq('id', '0');
+          setLogs([]);
+          setToastType('success');
+          setToastMessage('Logs limpos com sucesso!');
+        } catch (error: any) {
+          setToastType('error');
+          setToastMessage('Erro ao limpar logs: ' + error.message);
+        }
+      }
+    });
   };
 
   const filteredLogs = logs.filter(l => 
@@ -83,7 +109,7 @@ export const LogsManager = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-3">
-            <ScrollText className="w-6 h-6 text-[#268FFF]" />
+            <ScrollText className="w-6 h-6 text-[#FF0000]" />
             {t('admin_logs_title')}
           </h1>
           <p className="text-gray-400 text-xs sm:text-sm mt-1">Histórico em tempo real das ações e eventos realizados no sistema</p>
@@ -92,7 +118,7 @@ export const LogsManager = () => {
         <div className="flex items-center gap-3 shrink-0">
           <button 
             onClick={fetchLogs}
-            className="bg-[#121318] border border-[#1f212a] hover:bg-[#181920] text-gray-300 font-semibold text-xs px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+            className="bg-[#0d0e12] border border-[#20222c] hover:bg-[#1a1c26] hover:border-[#3a3d52] text-gray-300 hover:text-white font-semibold text-xs px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>Atualizar</span>
@@ -100,7 +126,7 @@ export const LogsManager = () => {
 
           <button 
             onClick={handleClearLogs}
-            className="bg-[#121318] border border-[#1f212a] hover:bg-red-500/10 hover:border-red-500/30 text-gray-400 hover:text-red-400 font-semibold text-xs px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+            className="bg-[#0d0e12] border border-[#20222c] hover:bg-red-500/10 hover:border-red-500/30 text-gray-400 hover:text-red-400 font-semibold text-xs px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm"
           >
             <Trash2 className="w-3.5 h-3.5" />
             <span>{t('admin_clear_logs')}</span>
@@ -109,7 +135,7 @@ export const LogsManager = () => {
       </div>
 
       {/* Filter and Search */}
-      <div className="bg-[#121318] border border-[#1f212a] rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+      <div className="bg-[#0d0e12] border border-[#1f212a] rounded-2xl p-4 flex items-center gap-3 shadow-sm">
         <Search className="w-4 h-4 text-gray-400 shrink-0" />
         <input 
           type="text" 
@@ -121,7 +147,7 @@ export const LogsManager = () => {
       </div>
 
       {/* Logs Table */}
-      <div className="bg-[#121318] border border-[#1f212a] rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-[#0d0e12] border border-[#1f212a] rounded-2xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs sm:text-sm text-gray-400">
             <thead className="bg-[#181920] text-gray-300 border-b border-[#1f212a]">
@@ -145,7 +171,7 @@ export const LogsManager = () => {
                 filteredLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-[#181920]/60 transition-colors">
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#268FFF]/10 border border-[#268FFF]/20 text-[#268FFF] font-mono text-[11px] font-bold">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#FF0000]/10 border border-[#FF0000]/20 text-[#FF0000] font-mono text-[11px] font-bold">
                         <Info className="w-3 h-3" />
                         {log.action}
                       </span>
@@ -157,7 +183,7 @@ export const LogsManager = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 font-mono text-xs text-gray-300">
-                      <pre className="whitespace-pre-wrap font-mono text-[11px] text-gray-300 bg-[#0a0b0e] border border-[#1f212a] p-2 rounded-lg max-w-md overflow-x-auto">
+                      <pre className="whitespace-pre-wrap font-mono text-[11px] text-gray-300 bg-[#000000] border border-[#1f212a] p-2 rounded-lg max-w-md overflow-x-auto">
                         {typeof log.details === 'object' ? JSON.stringify(log.details, null, 2) : log.details || '-'}
                       </pre>
                     </td>
@@ -174,6 +200,20 @@ export const LogsManager = () => {
           </table>
         </div>
       </div>
+
+      <ConfirmModal 
+        isOpen={confirmModalState.isOpen}
+        title={confirmModalState.title}
+        message={confirmModalState.message}
+        onConfirm={confirmModalState.onConfirm}
+        onCancel={() => setConfirmModalState(prev => ({ ...prev, isOpen: false }))}
+      />
+
+      <AdminToast 
+        message={toastMessage} 
+        type={toastType} 
+        onClose={() => setToastMessage(null)} 
+      />
     </div>
   );
 };

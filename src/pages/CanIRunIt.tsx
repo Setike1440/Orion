@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Breadcrumb } from '../components/Breadcrumb';
@@ -18,11 +18,15 @@ import {
   Check,
   Monitor,
   Zap,
-  X
+  X,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export const CanIRunIt = () => {
+  usePageTitle('Meu PC Roda?');
   const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const initialGameId = searchParams.get('gameId');
@@ -32,7 +36,10 @@ export const CanIRunIt = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // User System Specs State (auto-detected, with manual edit capability)
+  // Carousel ref
+  const gamesTrackRef = useRef<HTMLDivElement>(null);
+
+  // User System Specs State
   const [ramGb, setRamGb] = useState<number>(8);
   const [cpuCores, setCpuCores] = useState<number>(8);
   const [gpuName, setGpuName] = useState<string>('NVIDIA GeForce RTX 3060');
@@ -42,19 +49,16 @@ export const CanIRunIt = () => {
   // Detect System Hardware Specs on Mount
   useEffect(() => {
     try {
-      // RAM Detection
       if ((navigator as any).deviceMemory) {
         setRamGb(Math.max(4, (navigator as any).deviceMemory));
       } else {
         setRamGb(16);
       }
 
-      // CPU Cores Detection
       if (navigator.hardwareConcurrency) {
         setCpuCores(navigator.hardwareConcurrency);
       }
 
-      // GPU Detection via WebGL
       const canvas = document.createElement('canvas');
       const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
       if (gl) {
@@ -62,7 +66,6 @@ export const CanIRunIt = () => {
         if (debugInfo) {
           const renderer = (gl as any).getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
           if (renderer) {
-            // Clean up common prefixes like "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11...)"
             let cleanGpu = renderer.replace(/^ANGLE \([^,]+,\s*/, '').replace(/\s*\(0x\w+\)/, '');
             if (cleanGpu.length > 50) cleanGpu = cleanGpu.substring(0, 50);
             setGpuName(cleanGpu);
@@ -70,7 +73,6 @@ export const CanIRunIt = () => {
         }
       }
 
-      // OS Detection
       const platform = (navigator as any).userAgentData?.platform || navigator.platform || '';
       if (platform.toLowerCase().includes('win')) {
         setOsName('Windows 11 / 10 (64-bit)');
@@ -107,7 +109,18 @@ export const CanIRunIt = () => {
     fetchGames();
   }, [initialGameId]);
 
-  // Filtered games for dropdown / search
+  // Scroll handler for horizontal games carousel
+  const scrollGames = (direction: 'left' | 'right') => {
+    if (gamesTrackRef.current) {
+      const scrollAmount = 300;
+      gamesTrackRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Filtered games for search
   const filteredGames = games.filter(g => 
     g.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -120,7 +133,7 @@ export const CanIRunIt = () => {
     if (reqStr.includes('12 gb') || reqStr.includes('12gb')) return 12;
     if (reqStr.includes('8 gb') || reqStr.includes('8gb')) return 8;
     if (reqStr.includes('4 gb') || reqStr.includes('4gb')) return 4;
-    return 8; // Default standard
+    return 8;
   };
 
   const getRecRamRequired = (game: any) => {
@@ -142,9 +155,7 @@ export const CanIRunIt = () => {
 
   const ramStatus = ramGb >= recRam ? 'optimal' : ramGb >= minRam ? 'ok' : 'insufficient';
   const cpuStatus = cpuCores >= minCores ? 'optimal' : 'warning';
-  const osStatus = 'ok';
 
-  // Overall Score Verdict
   let verdict: 'excellent' | 'good' | 'warning';
   if (ramStatus === 'optimal' && cpuStatus === 'optimal') {
     verdict = 'excellent';
@@ -156,7 +167,7 @@ export const CanIRunIt = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0f1014] py-8 md:py-12">
+      <div className="min-h-screen bg-[#000000] py-8 md:py-12">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <Skeleton className="h-10 w-48 rounded-xl" />
           <Skeleton className="h-64 w-full rounded-3xl" />
@@ -167,10 +178,10 @@ export const CanIRunIt = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0b0e] py-8 md:py-12">
+    <div className="min-h-screen bg-[#000000] py-8 md:py-12">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
-        {/* Header & Breadcrumb */}
+        {/* 1. Header & Breadcrumb */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <Breadcrumb 
             items={[
@@ -179,331 +190,431 @@ export const CanIRunIt = () => {
           />
           <Link
             to="/"
-            className="inline-flex items-center gap-2 bg-[#268FFF] text-white hover:bg-[#1f7fe6] text-xs sm:text-sm font-semibold transition-all px-4 py-2.5 rounded-xl shadow-sm group cursor-pointer"
+            className="inline-flex items-center gap-2 bg-[#FF0000] border border-[#FF0000] text-white hover:bg-[#ff3333] hover:border-[#ff6666] text-xs sm:text-sm font-semibold transition-all px-4 py-2.5 rounded-xl shadow-sm group cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-            <span>Voltar ao Menu</span>
+            <span>{t('back_to_menu')}</span>
           </Link>
         </div>
 
-        {/* Title Banner */}
-        <div className="relative rounded-2xl overflow-hidden bg-[#121318] border border-[#1f212a] p-6 sm:p-8 shadow-sm">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-[#268FFF]/5 rounded-full blur-3xl pointer-events-none" />
+        {/* 2. Main Title Banner (Meu PC roda este jogo?) */}
+        <div className="relative rounded-2xl overflow-hidden bg-[#0d0e12] border border-[#1f212a] p-6 sm:p-8 shadow-sm">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-[#FF0000]/5 rounded-full blur-3xl pointer-events-none" />
           
           <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="space-y-3 max-w-xl">
-              <div className="inline-flex items-center gap-2 bg-[#268FFF]/10 border border-[#268FFF]/30 px-3 py-1 rounded-full text-[#268FFF] text-[11px] font-semibold tracking-wider uppercase">
+              <div className="inline-flex items-center gap-2 bg-[#FF0000]/10 border border-[#FF0000]/30 px-3 py-1 rounded-full text-[#FF0000] text-[11px] font-semibold tracking-wider uppercase">
                 <MonitorCheck className="w-3.5 h-3.5" />
                 <span>Análise de Desempenho do PC</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-                Meu PC roda este <span className="text-[#268FFF]">jogo</span>?
+                Meu PC roda este <span className="text-[#FF0000]">jogo</span>?
               </h1>
               <p className="text-gray-400 text-xs sm:text-sm leading-relaxed">
                 Analisamos automaticamente as especificações do seu hardware para calcular a compatibilidade e a taxa de quadros esperada para o jogo selecionado.
               </p>
             </div>
 
-            {/* Quick Summary Badge */}
-            <div className="bg-[#181920] border border-[#1f212a] rounded-xl p-4 flex items-center gap-4 shrink-0 w-full md:w-auto">
-              <div className="w-10 h-10 rounded-lg bg-[#268FFF]/10 border border-[#268FFF]/30 text-[#268FFF] flex items-center justify-center shrink-0">
-                <Cpu className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-[11px] text-gray-400 font-medium">Seu Hardware Detectado</p>
-                <p className="text-xs sm:text-sm font-semibold text-white mt-0.5">{ramGb} GB RAM • {cpuCores} Cores</p>
-                <p className="text-xs text-[#268FFF] truncate max-w-[200px] mt-0.5">{gpuName}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Grid: Game Selector & System Analysis */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-          {/* Left Column: Game Picker */}
-          <div className="lg:col-span-5 bg-[#121318] border border-[#1f212a] rounded-2xl p-5 md:p-6 space-y-5 shadow-sm flex flex-col justify-between">
-            <div className="space-y-4">
-              <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-                <Gamepad2 className="w-4 h-4 text-[#268FFF]" />
-                <span>Selecione o Jogo</span>
-              </h2>
-
-              {/* Search input */}
-              <div className="relative">
-                <Search className="w-4 h-4 text-gray-500 absolute left-3.5 top-3" />
-                <input 
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Buscar jogo..."
-                  className="w-full bg-[#0a0b0e] border border-[#20222c] focus:border-[#268FFF] rounded-xl pl-9 pr-9 py-2 text-xs text-white outline-none transition-all placeholder-gray-500"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors cursor-pointer p-0.5"
-                    title="Limpar pesquisa"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
+            {/* Hardware Detector Summary & Edit Toggle */}
+            <div className="flex flex-col gap-3 shrink-0 w-full md:w-auto">
+              <div className="bg-[#000000] border border-[#1f212a] rounded-xl p-4 flex items-center gap-4 shrink-0">
+                <div className="w-10 h-10 rounded-lg bg-[#FF0000]/10 border border-[#FF0000]/30 text-[#FF0000] flex items-center justify-center shrink-0">
+                  <Cpu className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-[11px] text-gray-400 font-medium">Seu Hardware Detectado</p>
+                  <p className="text-xs sm:text-sm font-semibold text-white mt-0.5">{ramGb} GB RAM • {cpuCores} Cores</p>
+                  <p className="text-xs text-[#FF0000] truncate max-w-[200px] mt-0.5">{gpuName}</p>
+                </div>
               </div>
 
-              {/* Games List Selector */}
-              <div className="space-y-2 max-h-[320px] overflow-y-auto no-scrollbar pr-1">
-                {filteredGames.map((game) => {
-                  const isSelected = selectedGame?.id === game.id;
-                  return (
-                    <button
-                      key={game.id}
-                      onClick={() => setSelectedGame(game)}
-                      className={`w-full flex items-center gap-3 p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-                        isSelected 
-                          ? 'bg-[#181920] border-[#268FFF] text-white shadow-sm' 
-                          : 'bg-[#171821]/60 border-[#1f212a] text-gray-300 hover:bg-[#181920] hover:border-gray-600'
-                      }`}
-                    >
-                      <img 
-                        src={game.cover_url} 
-                        alt={game.title} 
-                        className="w-10 h-12 object-cover rounded-lg shrink-0 border border-black/40"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold truncate text-white">{game.title}</p>
-                        <p className="text-[11px] text-gray-400 mt-0.5">{game.is_highlight ? '★ Em Destaque' : 'Steam PC'}</p>
-                      </div>
-                      {isSelected && (
-                        <Check className="w-4 h-4 text-[#268FFF] shrink-0 mr-1" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Manual Hardware Override Drawer Toggle */}
-            <div className="pt-4 border-t border-[#1f212a]">
               <button 
                 onClick={() => setIsEditingSpecs(!isEditingSpecs)}
-                className="w-full py-2 px-3 rounded-xl bg-[#171821] hover:bg-[#1f212a] text-xs font-semibold text-gray-300 hover:text-white flex items-center justify-center gap-2 border border-[#1f212a] transition-colors cursor-pointer"
+                className="w-full py-2 px-3 rounded-xl bg-[#000000] hover:bg-[#1a1c26] text-xs font-semibold text-gray-300 hover:text-white flex items-center justify-center gap-2 border border-[#1f212a] transition-colors cursor-pointer"
               >
-                <RefreshCw className="w-3.5 h-3.5 text-[#268FFF]" />
+                <RefreshCw className="w-3.5 h-3.5 text-[#FF0000]" />
                 <span>{isEditingSpecs ? 'Concluir Edição do Hardware' : 'Ajustar Especificações do meu PC'}</span>
               </button>
+            </div>
+          </div>
 
-              {isEditingSpecs && (
-                <div className="mt-3 p-3.5 bg-[#0a0b0e] border border-[#1f212a] rounded-xl space-y-3 text-xs animate-fadeIn">
-                  <div>
-                    <label className="text-gray-400 font-medium block mb-1">Memória RAM (GB)</label>
-                    <select 
-                      value={ramGb} 
-                      onChange={(e) => setRamGb(Number(e.target.value))}
-                      className="w-full bg-[#121318] border border-[#20222c] rounded-lg p-2 text-white outline-none"
-                    >
-                      <option value={4}>4 GB RAM</option>
-                      <option value={8}>8 GB RAM</option>
-                      <option value={12}>12 GB RAM</option>
-                      <option value={16}>16 GB RAM</option>
-                      <option value={32}>32 GB RAM</option>
-                      <option value={64}>64 GB RAM</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-gray-400 font-medium block mb-1">Cores do Processador (CPU)</label>
-                    <select 
-                      value={cpuCores} 
-                      onChange={(e) => setCpuCores(Number(e.target.value))}
-                      className="w-full bg-[#121318] border border-[#20222c] rounded-lg p-2 text-white outline-none"
-                    >
-                      <option value={2}>Dual-Core (2 Cores)</option>
-                      <option value={4}>Quad-Core (4 Cores)</option>
-                      <option value={6}>Hexa-Core (6 Cores)</option>
-                      <option value={8}>Octa-Core (8 Cores)</option>
-                      <option value={12}>12+ Cores</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-gray-400 font-medium block mb-1">Placa de Vídeo (GPU)</label>
-                    <input 
-                      type="text" 
-                      value={gpuName} 
-                      onChange={(e) => setGpuName(e.target.value)}
-                      className="w-full bg-[#121318] border border-[#20222c] rounded-lg p-2 text-white outline-none"
-                    />
-                  </div>
+          {/* Hardware Manual Editor Drawer */}
+          {isEditingSpecs && (
+            <div className="mt-5 p-4 bg-[#000000] border border-[#1f212a] rounded-xl space-y-3 text-xs animate-fadeIn relative z-10">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-gray-400 font-medium block mb-1">Memória RAM (GB)</label>
+                  <select 
+                    value={ramGb} 
+                    onChange={(e) => setRamGb(Number(e.target.value))}
+                    className="w-full bg-[#0d0e12] border border-[#20222c] rounded-lg p-2 text-white outline-none"
+                  >
+                    <option value={4}>4 GB RAM</option>
+                    <option value={8}>8 GB RAM</option>
+                    <option value={12}>12 GB RAM</option>
+                    <option value={16}>16 GB RAM</option>
+                    <option value={32}>32 GB RAM</option>
+                    <option value={64}>64 GB RAM</option>
+                  </select>
                 </div>
+                <div>
+                  <label className="text-gray-400 font-medium block mb-1">Cores do Processador (CPU)</label>
+                  <select 
+                    value={cpuCores} 
+                    onChange={(e) => setCpuCores(Number(e.target.value))}
+                    className="w-full bg-[#0d0e12] border border-[#20222c] rounded-lg p-2 text-white outline-none"
+                  >
+                    <option value={2}>Dual-Core (2 Cores)</option>
+                    <option value={4}>Quad-Core (4 Cores)</option>
+                    <option value={6}>Hexa-Core (6 Cores)</option>
+                    <option value={8}>Octa-Core (8 Cores)</option>
+                    <option value={12}>12+ Cores</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-gray-400 font-medium block mb-1">Placa de Vídeo (GPU)</label>
+                  <input 
+                    type="text" 
+                    value={gpuName} 
+                    onChange={(e) => setGpuName(e.target.value)}
+                    className="w-full bg-[#0d0e12] border border-[#20222c] rounded-lg p-2 text-white outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 3. Horizontal Games Section with Search Bar on top */}
+        <div className="bg-[#0d0e12] border border-[#1f212a] rounded-2xl p-5 md:p-6 space-y-4 shadow-sm">
+          
+          {/* Search bar on top of horizontal section */}
+          <div className="space-y-3">
+            <div className="relative">
+              <Search className="w-4 h-4 text-gray-500 absolute left-3.5 top-3" />
+              <input 
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar jogo na biblioteca..."
+                className="w-full bg-[#000000] border border-[#20222c] focus:border-[#FF0000] rounded-xl pl-9 pr-9 py-2.5 text-xs sm:text-sm text-white outline-none transition-all placeholder-gray-500 shadow-inner"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors cursor-pointer p-0.5"
+                  title="Limpar pesquisa"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               )}
             </div>
           </div>
 
-          {/* Right Column: Compatibility Analysis Results */}
-          <div className="lg:col-span-7 space-y-6">
+          {/* Section title & Carousel Arrow Controls */}
+          <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center gap-2">
+              <Gamepad2 className="w-4 h-4 text-[#FF0000]" />
+              <h2 className="text-sm sm:text-base font-semibold text-white">Selecione o Jogo para Testar</h2>
+            </div>
 
-            {selectedGame ? (
-              <div className="bg-[#121318] border border-[#1f212a] rounded-2xl p-6 md:p-7 space-y-6 shadow-sm">
-                
-                {/* Selected Game Card Header */}
-                <div className="flex items-center gap-4 pb-5 border-b border-[#1f212a]">
-                  <img 
-                    src={selectedGame.cover_url} 
-                    alt={selectedGame.title} 
-                    className="w-14 h-18 object-cover rounded-xl shadow-sm border border-[#1f212a]"
-                  />
-                  <div className="space-y-1 min-w-0">
-                    <span className="text-[10px] font-semibold text-[#268FFF] tracking-wider uppercase">Jogo Selecionado</span>
-                    <h3 className="text-lg font-bold text-white truncate">{selectedGame.title}</h3>
-                    <p className="text-xs text-gray-400">Verificação em tempo real com hardware local</p>
-                  </div>
-                </div>
+            {/* Arrows: Red circle button with white icon */}
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => scrollGames('left')}
+                className="w-8 h-8 rounded-full bg-[#FF0000] hover:bg-[#ff3333] border border-[#FF0000] text-white flex items-center justify-center transition-all cursor-pointer shadow-md"
+                title="Anterior"
+              >
+                <ChevronLeft className="w-4 h-4 text-white" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollGames('right')}
+                className="w-8 h-8 rounded-full bg-[#FF0000] hover:bg-[#ff3333] border border-[#FF0000] text-white flex items-center justify-center transition-all cursor-pointer shadow-md"
+                title="Próximo"
+              >
+                <ChevronRight className="w-4 h-4 text-white" />
+              </button>
+            </div>
+          </div>
 
-                {/* Overall Verdict Box */}
-                <div className={`p-4 rounded-xl border flex items-center gap-4 transition-all shadow-sm ${
-                  verdict === 'excellent' 
-                    ? 'bg-[#268FFF]/10 border-[#268FFF]/40 text-white' 
-                    : verdict === 'good'
-                    ? 'bg-blue-500/10 border-blue-500/40 text-white'
-                    : 'bg-amber-500/10 border-amber-500/40 text-white'
-                }`}>
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border ${
-                    verdict === 'excellent' 
-                      ? 'bg-[#268FFF]/20 border-[#268FFF]/50 text-[#268FFF]' 
-                      : verdict === 'good'
-                      ? 'bg-blue-500/20 border-blue-500/50 text-blue-400'
-                      : 'bg-amber-500/20 border-amber-500/50 text-amber-400'
-                  }`}>
-                    {verdict === 'excellent' ? <Zap className="w-5 h-5" /> : verdict === 'good' ? <CheckCircle2 className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
-                  </div>
-
-                  <div className="space-y-0.5">
-                    <h4 className="text-sm font-bold tracking-tight">
-                      {verdict === 'excellent' && '🚀 Roda no RECOMENDADO! (Excelente Desempenho)'}
-                      {verdict === 'good' && '✅ Roda nos Requisitos MÍNIMOS em 1080p'}
-                      {verdict === 'warning' && '⚠️ Seu PC pode ter dificuldades com este jogo'}
-                    </h4>
-                    <p className="text-xs text-gray-300 leading-relaxed">
-                      {verdict === 'excellent' && 'Seu hardware excede os requisitos recomendados. Você poderá jogar em alta resolução e taxa de quadros fluida.'}
-                      {verdict === 'good' && 'Seu computador atende aos requisitos essenciais para executar o jogo em configurações médias/baixas de qualidade.'}
-                      {verdict === 'warning' && 'A memória RAM ou o processador detectados estão abaixo do recomendado oficial do jogo.'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Detailed Spec Comparison Breakdown */}
-                <div className="space-y-3">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-white flex items-center gap-2">
-                    <Monitor className="w-4 h-4 text-[#268FFF]" />
-                    <span>Comparativo Detalhado de Componentes</span>
-                  </h4>
-
-                  <div className="grid grid-cols-1 gap-2.5">
-
-                    {/* RAM Test */}
-                    <div className="bg-[#181920] border border-[#1f212a] rounded-xl p-3.5 flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-[#121318] border border-[#20222c] flex items-center justify-center text-gray-300 shrink-0">
-                          <HardDrive className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-semibold text-white">Memória RAM</p>
-                          <p className="text-[11px] text-gray-400">Seu PC: <span className="text-white font-medium">{ramGb} GB</span> • Mínimo: <span className="text-gray-300">{minRam} GB</span></p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        {ramStatus === 'optimal' ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#268FFF] bg-[#268FFF]/10 border border-[#268FFF]/30 px-2.5 py-0.5 rounded-full">
-                            <CheckCircle2 className="w-3 h-3" /> Recomendado
-                          </span>
-                        ) : ramStatus === 'ok' ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-400 bg-blue-400/10 border border-blue-400/30 px-2.5 py-0.5 rounded-full">
-                            <CheckCircle2 className="w-3 h-3" /> Mínimo
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-400 bg-red-400/10 border border-red-400/30 px-2.5 py-0.5 rounded-full">
-                            <XCircle className="w-3 h-3" /> Abaixo
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* CPU Test */}
-                    <div className="bg-[#181920] border border-[#1f212a] rounded-xl p-3.5 flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-[#121318] border border-[#20222c] flex items-center justify-center text-gray-300 shrink-0">
-                          <Cpu className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-semibold text-white">Processador (CPU)</p>
-                          <p className="text-[11px] text-gray-400">Seu PC: <span className="text-white font-medium">{cpuCores} Cores</span> • Mínimo: <span className="text-gray-300">{minCores} Cores</span></p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        {cpuStatus === 'optimal' ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#268FFF] bg-[#268FFF]/10 border border-[#268FFF]/30 px-2.5 py-0.5 rounded-full">
-                            <CheckCircle2 className="w-3 h-3" /> OK
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-400 bg-amber-400/10 border border-amber-400/30 px-2.5 py-0.5 rounded-full">
-                            <AlertTriangle className="w-3 h-3" /> Alerta
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* GPU Test */}
-                    <div className="bg-[#181920] border border-[#1f212a] rounded-xl p-3.5 flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-[#121318] border border-[#20222c] flex items-center justify-center text-gray-300 shrink-0">
-                          <MonitorCheck className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold text-white">Placa de Vídeo (GPU)</p>
-                          <p className="text-[11px] text-gray-400 truncate max-w-[220px]">Detectada: <span className="text-white font-medium">{gpuName}</span></p>
-                        </div>
-                      </div>
-
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#268FFF] bg-[#268FFF]/10 border border-[#268FFF]/30 px-2.5 py-0.5 rounded-full shrink-0">
-                        <CheckCircle2 className="w-3 h-3" /> Compatível
-                      </span>
-                    </div>
-
-                  </div>
-                </div>
-
-                {/* Requirements Text from Game Details */}
-                {selectedGame.requirements && (
-                  <div className="pt-4 border-t border-[#1f212a] space-y-2">
-                    <h5 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Requisitos Oficiais do Desenvolvedor</h5>
-                    <div className="p-3 bg-[#0a0b0e] border border-[#1f212a] rounded-xl text-xs text-gray-300 whitespace-pre-line leading-relaxed max-h-36 overflow-y-auto">
-                      {selectedGame.requirements}
-                    </div>
-                  </div>
-                )}
-
-                {/* Link to Game Details */}
-                <div className="pt-2">
-                  <Link
-                    to={`/jogo/${selectedGame.id}`}
-                    className="w-full py-2.5 px-4 bg-[#268FFF] hover:bg-[#1f7fe6] text-white font-semibold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
+          {/* Horizontal games track (cards deitados igual no menu) */}
+          <div 
+            ref={gamesTrackRef}
+            className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth pt-1 pb-2 px-0.5"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {filteredGames.length > 0 ? (
+              filteredGames.map((game) => {
+                const isSelected = selectedGame?.id === game.id;
+                return (
+                  <button
+                    key={game.id}
+                    type="button"
+                    onClick={() => setSelectedGame(game)}
+                    className={`group relative flex-none w-52 sm:w-64 aspect-[460/215] rounded-2xl overflow-hidden text-left transition-all duration-200 cursor-pointer flex flex-col justify-end p-3 ${
+                      isSelected
+                        ? 'border-2 border-[#FF0000] scale-[1.02] z-10 shadow-md'
+                        : 'border border-[#1f212a] bg-[#000000] hover:border-[#FF0000]/60 hover:-translate-y-1'
+                    }`}
                   >
-                    <span>Acessar Jogo e Credenciais</span>
-                    <Sparkles className="w-4 h-4" />
-                  </Link>
+                    {/* Cover image */}
+                    <img 
+                      src={game.cover_url} 
+                      alt={game.title}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10" />
+
+                    {/* Selection Check Badge Top Right */}
+                    {isSelected && (
+                      <div className="absolute top-2 right-2 z-20 w-6 h-6 rounded-full bg-[#FF0000] text-white flex items-center justify-center shadow-md">
+                        <Check className="w-3.5 h-3.5" />
+                      </div>
+                    )}
+
+                    {/* Content Bottom */}
+                    <div className="relative z-20 space-y-0.5">
+                      <p className={`text-xs font-bold truncate transition-colors drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] ${isSelected ? 'text-[#FF0000]' : 'text-white group-hover:text-[#FF0000]'}`}>
+                        {game.title}
+                      </p>
+                      <p className="text-[10px] text-gray-300 drop-shadow-sm">
+                        {game.is_highlight ? '★ Em Destaque' : 'PC Game'}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })
+            ) : (
+              <div className="w-full py-8 text-center text-xs text-gray-400 bg-[#000000] border border-[#1f212a] rounded-xl">
+                Nenhum jogo encontrado para "{searchQuery}".
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 4. Specifications & Analysis Container (Rectangular - Full Width) */}
+        {selectedGame ? (
+          <div className="bg-[#0d0e12] border border-[#1f212a] rounded-2xl p-6 md:p-8 space-y-6 shadow-sm">
+            
+            {/* Selected Game Card Header with Landscape Cover (deitada) */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pb-5 border-b border-[#1f212a]">
+              <img 
+                src={selectedGame.cover_url} 
+                alt={selectedGame.title} 
+                className="w-36 sm:w-48 aspect-[460/215] object-cover rounded-xl shadow-md border border-[#1f212a] shrink-0"
+              />
+              <div className="space-y-1 min-w-0">
+                <span className="text-[10px] font-bold text-[#FF0000] tracking-wider uppercase bg-[#FF0000]/10 px-2.5 py-0.5 rounded-full inline-block border border-[#FF0000]/20">
+                  Jogo Selecionado
+                </span>
+                <h3 className="text-xl sm:text-2xl font-bold text-white truncate">{selectedGame.title}</h3>
+                <p className="text-xs text-gray-400">Verificação de compatibilidade em tempo real com hardware local</p>
+              </div>
+            </div>
+
+            {/* Overall Verdict Box (Green for Excellent, Yellow for Good, Red for Warning/No) */}
+            <div className={`p-4 sm:p-5 rounded-2xl border flex items-center gap-4 transition-all shadow-sm ${
+              verdict === 'excellent' 
+                ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-200' 
+                : verdict === 'good'
+                ? 'bg-amber-500/10 border-amber-500/40 text-amber-200'
+                : 'bg-red-500/10 border-red-500/40 text-red-200'
+            }`}>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border ${
+                verdict === 'excellent' 
+                  ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' 
+                  : verdict === 'good'
+                  ? 'bg-amber-500/20 border-amber-500/50 text-amber-400'
+                  : 'bg-red-500/20 border-red-500/50 text-red-400'
+              }`}>
+                {verdict === 'excellent' ? <Zap className="w-6 h-6 text-emerald-400" /> : verdict === 'good' ? <CheckCircle2 className="w-6 h-6 text-amber-400" /> : <AlertTriangle className="w-6 h-6 text-red-400" />}
+              </div>
+
+              <div className="space-y-1">
+                <h4 className={`text-sm sm:text-base font-bold tracking-tight ${
+                  verdict === 'excellent' ? 'text-emerald-400' : verdict === 'good' ? 'text-amber-400' : 'text-red-400'
+                }`}>
+                  {verdict === 'excellent' && '🚀 Roda no RECOMENDADO! (Excelente Desempenho)'}
+                  {verdict === 'good' && '✅ Roda nos Requisitos MÍNIMOS em 1080p'}
+                  {verdict === 'warning' && '❌ Seu PC pode ter dificuldades com este jogo'}
+                </h4>
+                <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
+                  {verdict === 'excellent' && 'Seu hardware excede os requisitos recomendados. Você poderá jogar em alta resolução e taxa de quadros fluida.'}
+                  {verdict === 'good' && 'Seu computador atende aos requisitos essenciais para executar o jogo em configurações médias/baixas de qualidade.'}
+                  {verdict === 'warning' && 'A memória RAM ou o processador detectados estão abaixo do recomendado oficial do jogo.'}
+                </p>
+              </div>
+            </div>
+
+            {/* Detailed Spec Comparison Breakdown */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
+                <Monitor className="w-4 h-4 text-[#FF0000]" />
+                <span>Comparativo Detalhado de Componentes</span>
+              </h4>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+
+                {/* RAM Test */}
+                <div className="bg-[#000000] border border-[#1f212a] rounded-xl p-4 flex flex-col justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-[#0d0e12] border border-[#20222c] flex items-center justify-center text-gray-300 shrink-0">
+                      <HardDrive className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-white">Memória RAM</p>
+                      <p className="text-[11px] text-gray-400">PC: <span className="text-white font-semibold">{ramGb} GB</span> • Mín: <span className="text-gray-300">{minRam} GB</span></p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end pt-2 border-t border-[#1f212a]">
+                    {ramStatus === 'optimal' ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-full">
+                        <CheckCircle2 className="w-3 h-3" /> Recomendado
+                      </span>
+                    ) : ramStatus === 'ok' ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-full">
+                        <CheckCircle2 className="w-3 h-3" /> Mínimo
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-400 bg-red-500/10 border border-red-500/30 px-2.5 py-1 rounded-full">
+                        <XCircle className="w-3 h-3" /> Abaixo
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* CPU Test */}
+                <div className="bg-[#000000] border border-[#1f212a] rounded-xl p-4 flex flex-col justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-[#0d0e12] border border-[#20222c] flex items-center justify-center text-gray-300 shrink-0">
+                      <Cpu className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-white">Processador (CPU)</p>
+                      <p className="text-[11px] text-gray-400">PC: <span className="text-white font-semibold">{cpuCores} Cores</span> • Mín: <span className="text-gray-300">{minCores} Cores</span></p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end pt-2 border-t border-[#1f212a]">
+                    {cpuStatus === 'optimal' ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-full">
+                        <CheckCircle2 className="w-3 h-3" /> Recomendado
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-400 bg-red-500/10 border border-red-500/30 px-2.5 py-1 rounded-full">
+                        <AlertTriangle className="w-3 h-3" /> Insuficiente
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* GPU Test */}
+                <div className="bg-[#000000] border border-[#1f212a] rounded-xl p-4 flex flex-col justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-[#0d0e12] border border-[#20222c] flex items-center justify-center text-gray-300 shrink-0">
+                      <MonitorCheck className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-white">Placa de Vídeo (GPU)</p>
+                      <p className="text-[11px] text-gray-400 truncate">Detectada: <span className="text-white font-semibold">{gpuName}</span></p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end pt-2 border-t border-[#1f212a]">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-full">
+                      <CheckCircle2 className="w-3 h-3" /> Compatível
+                    </span>
+                  </div>
                 </div>
 
               </div>
-            ) : (
-              <div className="bg-[#121318] border border-[#1f212a] rounded-2xl p-12 text-center text-gray-400">
-                <p>Nenhum jogo selecionado.</p>
+            </div>
+
+            {/* Official Developer Requirements Text - Organized with Icons & No Scrollbar */}
+            {selectedGame.requirements && (
+              <div className="pt-4 border-t border-[#1f212a] space-y-3">
+                <div className="flex items-center justify-between">
+                  <h5 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#FF0000]" />
+                    <span>Requisitos Oficiais do Desenvolvedor</span>
+                  </h5>
+                </div>
+
+                {/* Formatted Container - Full view without scrollbar */}
+                <div className="p-5 bg-[#000000] border border-[#1f212a] rounded-xl text-xs text-gray-300 leading-relaxed font-sans space-y-2.5">
+                  {selectedGame.requirements.split('\n').filter((line: string) => line.trim().length > 0).map((line: string, idx: number) => {
+                    const lower = line.toLowerCase();
+                    if (lower.includes('mínimos') || lower.includes('mínimo') || lower.includes('minimum')) {
+                      return (
+                        <div key={idx} className="pt-3 pb-1 text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-2 border-b border-[#1f212a]">
+                          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                          <span>{line}</span>
+                        </div>
+                      );
+                    }
+                    if (lower.includes('recomendados') || lower.includes('recomendado') || lower.includes('recommended')) {
+                      return (
+                        <div key={idx} className="pt-4 pb-1 text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2 border-b border-[#1f212a]">
+                          <Zap className="w-4 h-4 text-emerald-400 shrink-0" />
+                          <span>{line}</span>
+                        </div>
+                      );
+                    }
+
+                    let IconComp = CheckCircle2;
+                    let iconStyle = "text-[#FF0000]";
+
+                    if (lower.includes('so:') || lower.includes('sistema') || lower.includes('os:')) {
+                      IconComp = Monitor;
+                      iconStyle = "text-blue-400";
+                    } else if (lower.includes('processador') || lower.includes('cpu:')) {
+                      IconComp = Cpu;
+                      iconStyle = "text-purple-400";
+                    } else if (lower.includes('memória') || lower.includes('ram:')) {
+                      IconComp = HardDrive;
+                      iconStyle = "text-emerald-400";
+                    } else if (lower.includes('placa de vídeo') || lower.includes('gpu:') || lower.includes('vídeo:')) {
+                      IconComp = MonitorCheck;
+                      iconStyle = "text-amber-400";
+                    } else if (lower.includes('armazenamento') || lower.includes('espaço') || lower.includes('disco:')) {
+                      IconComp = HardDrive;
+                      iconStyle = "text-cyan-400";
+                    }
+
+                    return (
+                      <div key={idx} className="flex items-start gap-2.5 bg-[#0d0e12] border border-[#1f212a] p-3 rounded-lg text-xs text-gray-200">
+                        <IconComp className={`w-4 h-4 ${iconStyle} shrink-0 mt-0.5`} />
+                        <span className="leading-snug">{line}</span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
-          </div>
+            {/* Link to Game Details */}
+            <div className="pt-2">
+              <Link
+                to={`/jogo/${selectedGame.id}`}
+                className="w-full py-3.5 px-4 bg-[#FF0000] border border-[#FF0000] text-white font-semibold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
+              >
+                <span>Acessar Jogo e Credenciais</span>
+                <Sparkles className="w-4 h-4" />
+              </Link>
+            </div>
 
-        </div>
+          </div>
+        ) : (
+          <div className="bg-[#0d0e12] border border-[#1f212a] rounded-2xl p-12 text-center text-gray-400">
+            <p>Nenhum jogo selecionado.</p>
+          </div>
+        )}
 
       </div>
     </div>

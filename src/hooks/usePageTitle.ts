@@ -2,10 +2,11 @@ import { useEffect } from 'react';
 
 export function usePageTitle(pageTitle?: string) {
   useEffect(() => {
-    if (pageTitle) {
-      document.title = `Orion / ${pageTitle}`;
+    if (pageTitle && pageTitle !== 'Orion') {
+      document.title = `${pageTitle} - Orion`;
     } else {
-      document.title = 'Orion / Biblioteca Steam';
+      document.title = 'Orion';
     }
   }, [pageTitle]);
 }
+
