@@ -228,7 +228,7 @@ export const GameDetails = () => {
                   decoding="async"
                   className="object-cover w-full h-full"
                 />
-                <div className="absolute top-2.5 left-2.5 bg-[#FF0000] text-white text-[10px] font-semibold px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-sm">
+                <div className="absolute top-2.5 left-2.5 bg-[#0d0e12]/80 bg-[#FF0000]/15 border border-[#FF0000]/30 text-[#FF0000] backdrop-blur-md text-[10px] font-semibold px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-sm">
                   <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
                     <path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.03 4.524 4.524s-2.03 4.524-4.524 4.524c-.102 0-.201-.008-.302-.014l-4.062 2.922c.004.073.01.147.01.221 0 1.861-1.514 3.375-3.375 3.375-1.425 0-2.645-.888-3.136-2.14L.272 16.208C1.582 20.76 5.792 24 11.979 24c6.627 0 12-5.373 12-12s-5.373-12-12-12z" />
                   </svg>
