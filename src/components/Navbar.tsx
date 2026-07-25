@@ -216,11 +216,11 @@ export const Navbar = () => {
             ) : user ? (
               <div className="flex items-center gap-3">
                 <div className="relative group">
-                  <button className="h-9 px-2 pr-3.5 flex items-center gap-2 bg-[#0d0e12] border border-[#20222c] hover:bg-[#1a1c26] hover:border-[#3a3d52] rounded-full transition-all shadow-sm cursor-pointer group">
-                    <div className="w-6 h-6 rounded-full bg-[#1a1c26] flex items-center justify-center">
-                      <User className="w-3.5 h-3.5 text-gray-300 group-hover:text-white" />
+                  <button className="h-9 px-2.5 pr-3.5 flex items-center gap-2 bg-[#0d0e12] border border-[#20222c] hover:bg-[#1a1c26] hover:border-[#3a3d52] text-gray-400 hover:text-white rounded-full transition-all shadow-sm cursor-pointer group">
+                    <div className="w-5 h-5 rounded-full bg-[#1a1c26] flex items-center justify-center">
+                      <User className="w-3.5 h-3.5 text-gray-400 group-hover:text-white transition-colors" />
                     </div>
-                    <span className="text-xs sm:text-sm font-medium text-gray-200 group-hover:text-white truncate max-w-[100px]">
+                    <span className="text-xs sm:text-sm font-medium text-gray-400 group-hover:text-white transition-colors truncate max-w-[100px]">
                       {profile?.username || profile?.email?.split('@')[0] || 'Usuário'}
                     </span>
                   </button>

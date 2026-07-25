@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Breadcrumb } from '../components/Breadcrumb';
 import { Skeleton } from '../components/Skeleton';
-import { ShieldCheck, Download, Gamepad2, Key, HelpCircle, CheckCircle2, ArrowLeft, Lock, Zap, Sparkles } from 'lucide-react';
+import { ShieldCheck, Download, Gamepad2, Key, HelpCircle, CheckCircle2, ArrowLeft, Lock, Zap, Sparkles, ChevronDown } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { usePageTitle } from '../hooks/usePageTitle';
 
@@ -10,6 +10,7 @@ export const HowItWorks = () => {
   usePageTitle('Como Funciona');
   const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 200);
@@ -132,18 +133,18 @@ export const HowItWorks = () => {
               return (
                 <div 
                   key={step.number}
-                  className="bg-[#121318] border border-[#1f212a] hover:border-[#FF0000]/40 p-6 rounded-2xl transition-all duration-200 shadow-sm group relative overflow-hidden"
+                  className="bg-[#121318] border border-[#1f212a] hover:border-[#2e313e] hover:bg-[#16171f] p-6 rounded-2xl transition-all duration-200 shadow-sm group relative overflow-hidden"
                 >
                   <div className="flex items-start justify-between mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-[#181920] border border-[#20222c] text-[#FF0000] flex items-center justify-center group-hover:scale-105 group-hover:border-[#FF0000]/50 transition-all">
+                    <div className="w-10 h-10 rounded-xl bg-[#181920] border border-[#20222c] text-[#FF0000] flex items-center justify-center group-hover:scale-105 group-hover:border-[#333647] transition-all">
                       <Icon className="w-5 h-5" />
                     </div>
-                    <span className="text-2xl font-extrabold text-gray-700/60 group-hover:text-[#FF0000]/30 transition-colors">
+                    <span className="text-2xl font-extrabold text-gray-700/60 group-hover:text-gray-500 transition-colors">
                       {step.number}
                     </span>
                   </div>
 
-                  <h3 className="text-sm font-semibold text-white mb-1.5 group-hover:text-[#FF0000] transition-colors">
+                  <h3 className="text-sm font-semibold text-white mb-1.5 transition-colors">
                     {step.title}
                   </h3>
                   <p className="text-gray-400 text-xs leading-relaxed">
@@ -185,20 +186,33 @@ export const HowItWorks = () => {
           </h2>
 
           <div className="space-y-3">
-            {faqs.map((faq, index) => (
-              <div 
-                key={index} 
-                className="bg-[#121318] border border-[#1f212a] rounded-xl p-4 space-y-1.5 hover:border-[#FF0000]/30 transition-colors shadow-sm"
-              >
-                <div className="flex items-center gap-2 text-white font-semibold text-xs sm:text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-[#FF0000] shrink-0" />
-                  <h4>{faq.q}</h4>
+            {faqs.map((faq, index) => {
+              const isOpen = openFaqIndex === index;
+              return (
+                <div 
+                  key={index} 
+                  className="bg-[#121318] border border-[#1f212a] hover:border-[#333647] hover:bg-[#16171f] rounded-xl p-4 transition-all shadow-sm"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaqIndex(isOpen ? null : index)}
+                    className="w-full flex items-center justify-between text-left text-white font-semibold text-xs sm:text-sm cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-[#FF0000] shrink-0" />
+                      <h4>{faq.q}</h4>
+                    </div>
+                    <ChevronDown className={`w-4 h-4 text-gray-400 group-hover:text-white transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180 text-white' : ''}`} />
+                  </button>
+
+                  {isOpen && (
+                    <p className="text-gray-400 text-xs leading-relaxed pl-6 pt-2 animate-fadeIn">
+                      {faq.a}
+                    </p>
+                  )}
                 </div>
-                <p className="text-gray-400 text-xs leading-relaxed pl-6">
-                  {faq.a}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

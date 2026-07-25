@@ -72,7 +72,17 @@ export const NotificationBell = () => {
       .limit(10);
     
     if (data) {
-      setNotifications(data);
+      const storageKey = user ? `cleared_notifs_${user.id}` : 'cleared_notifs_guest';
+      const timeKey = user ? `cleared_at_${user.id}` : 'cleared_at_guest';
+
+      const clearedIds: string[] = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      const clearedAt = localStorage.getItem(timeKey);
+
+      let filtered = data.filter(n => !clearedIds.includes(n.id));
+      if (clearedAt) {
+        filtered = filtered.filter(n => new Date(n.created_at).getTime() > Number(clearedAt));
+      }
+      setNotifications(filtered);
     }
   };
 
@@ -98,6 +108,16 @@ export const NotificationBell = () => {
   };
 
   const clearNotifications = () => {
+    const storageKey = user ? `cleared_notifs_${user.id}` : 'cleared_notifs_guest';
+    const timeKey = user ? `cleared_at_${user.id}` : 'cleared_at_guest';
+
+    const currentIds = notifications.map(n => n.id);
+    const existingCleared: string[] = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    const updatedCleared = Array.from(new Set([...existingCleared, ...currentIds]));
+
+    localStorage.setItem(storageKey, JSON.stringify(updatedCleared));
+    localStorage.setItem(timeKey, Date.now().toString());
+
     setNotifications([]);
     setUnreadCount(0);
   };

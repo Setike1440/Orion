@@ -230,9 +230,9 @@ export const CanIRunIt = () => {
 
               <button 
                 onClick={() => setIsEditingSpecs(!isEditingSpecs)}
-                className="w-full py-2 px-3 rounded-xl bg-[#000000] hover:bg-[#1a1c26] text-xs font-semibold text-gray-300 hover:text-white flex items-center justify-center gap-2 border border-[#1f212a] transition-colors cursor-pointer"
+                className="w-full py-2 px-3 rounded-xl bg-[#0d0e12] border border-[#20222c] hover:bg-[#1a1c26] hover:border-[#3a3d52] text-xs font-semibold text-gray-400 hover:text-white flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer group"
               >
-                <RefreshCw className="w-3.5 h-3.5 text-[#FF0000]" />
+                <RefreshCw className="w-3.5 h-3.5 text-gray-400 group-hover:text-white transition-colors" />
                 <span>{isEditingSpecs ? 'Concluir Edição do Hardware' : 'Ajustar Especificações do meu PC'}</span>
               </button>
             </div>

@@ -42,15 +42,13 @@ export const AnnouncementBar = () => {
         {renderIcon()}
         <div className="inline-flex items-center gap-1.5 flex-wrap justify-center">
           <span>{announcement.text}</span>
-          {announcement.link_url && (
-            <Link 
-              to={announcement.link_url} 
-              className="inline-flex items-center gap-1 underline underline-offset-2 hover:opacity-80 transition-opacity"
-            >
-              <span>Saber mais</span>
-              <ArrowRight className="w-3 h-3" />
-            </Link>
-          )}
+          <Link 
+            to="/como-funciona" 
+            className="inline-flex items-center gap-1 underline underline-offset-2 text-[#FF0000] hover:text-[#ff6666] font-bold transition-colors"
+          >
+            <span>Saber mais</span>
+            <ArrowRight className="w-3 h-3 text-[#FF0000] hover:text-[#ff6666]" />
+          </Link>
         </div>
       </div>
       <button 
