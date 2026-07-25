@@ -114,7 +114,7 @@ export const Navbar = () => {
           <div className="flex items-center gap-8 flex-1">
             <Link to="/" className="flex items-center gap-2 group shrink-0">
               <img 
-                src={settings.logo_url || "https://i.ibb.co/zW1gzQRR/Logo.png"} 
+                src={settings.logo_url && settings.logo_url !== 'https://i.ibb.co/zW1gzQRR/Logo.png' ? settings.logo_url : "https://i.ibb.co/kspXCrY6/Retangular.png"} 
                 alt={settings.site_name || "Sirius"} 
                 className="h-5 sm:h-6 w-auto object-contain" 
               />

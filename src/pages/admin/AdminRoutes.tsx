@@ -89,9 +89,11 @@ const AdminLayout = () => {
         <div className="p-4 sm:p-5 flex-1 overflow-y-auto space-y-4">
           {/* Header Title */}
           <div className="flex items-center gap-3 px-1 min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-[#FF0000]/10 border border-[#FF0000]/30 flex items-center justify-center text-[#FF0000] shrink-0">
-              <Shield className="w-4 h-4" />
-            </div>
+            <img 
+              src="https://i.ibb.co/zW1gzQRR/Logo.png" 
+              alt="Administração" 
+              className="w-8 h-8 object-contain shrink-0" 
+            />
             {!isCollapsed && (
               <div className="min-w-0">
                 <h2 className="text-sm font-bold text-white tracking-wide truncate">{t('admin_title')}</h2>

@@ -245,7 +245,7 @@ INSERT INTO public.site_settings (id, site_name, logo_url, favicon_url, seo_titl
 VALUES (
   1, 
   'Sirius',
-  'https://i.ibb.co/zW1gzQRR/Logo.png',
+  'https://i.ibb.co/kspXCrY6/Retangular.png',
   'https://i.ibb.co/zW1gzQRR/Logo.png', 
   'Sirius - Contas Steam Gratuitas & Jogos em Destaque', 
   '{"enabled": false, "message": "Manutenção preventiva em andamento."}'::jsonb, 

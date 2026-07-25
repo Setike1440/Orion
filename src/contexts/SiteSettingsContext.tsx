@@ -97,7 +97,7 @@ interface SiteSettingsContextType {
 
 const DEFAULT_SETTINGS: SiteSettings = {
   site_name: 'Sirius',
-  logo_url: 'https://i.ibb.co/zW1gzQRR/Logo.png',
+  logo_url: 'https://i.ibb.co/kspXCrY6/Retangular.png',
   favicon_url: 'https://i.ibb.co/zW1gzQRR/Logo.png',
   social_discord: 'https://discord.gg',
   social_instagram: 'https://instagram.com',
@@ -205,6 +205,19 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   // 1. Initial Supabase Fetch & Realtime Subscription
   useEffect(() => {
+    const sanitizeName = (val?: string) => {
+      if (!val || val.toLowerCase().includes('orion')) return 'Sirius';
+      return val;
+    };
+    const sanitizeLogo = (val?: string) => {
+      if (!val || val.includes('0a36M0M') || val === 'https://i.ibb.co/zW1gzQRR/Logo.png') return 'https://i.ibb.co/kspXCrY6/Retangular.png';
+      return val;
+    };
+    const sanitizeText = (val?: string) => {
+      if (!val) return val;
+      return val.replace(/Orion Games/g, 'Sirius').replace(/Orion/g, 'Sirius');
+    };
+
     const fetchSiteSettings = async () => {
       try {
         const { data, error } = await supabase.from('site_settings').select('*').eq('id', 1).maybeSingle();
@@ -212,16 +225,16 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
           if (data.site_name) {
             setSettings(prev => ({
               ...prev,
-              site_name: data.site_name || prev.site_name,
-              logo_url: data.logo_url || prev.logo_url,
+              site_name: sanitizeName(data.site_name),
+              logo_url: sanitizeLogo(data.logo_url),
               favicon_url: data.favicon_url || prev.favicon_url,
               social_discord: data.social_discord || prev.social_discord,
               social_instagram: data.social_instagram || prev.social_instagram,
               social_twitter: data.social_twitter || prev.social_twitter,
               social_youtube: data.social_youtube || prev.social_youtube,
-              support_email: data.support_email || prev.support_email,
-              seo_title: data.seo_title || prev.seo_title,
-              seo_description: data.seo_description || prev.seo_description,
+              support_email: sanitizeText(data.support_email) || prev.support_email,
+              seo_title: sanitizeText(data.seo_title) || prev.seo_title,
+              seo_description: sanitizeText(data.seo_description) || prev.seo_description,
               primary_color: data.primary_color || prev.primary_color,
             }));
           }
@@ -249,16 +262,16 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
           if (data.site_name) {
             setSettings(prev => ({
               ...prev,
-              site_name: data.site_name || prev.site_name,
-              logo_url: data.logo_url || prev.logo_url,
+              site_name: sanitizeName(data.site_name),
+              logo_url: sanitizeLogo(data.logo_url),
               favicon_url: data.favicon_url || prev.favicon_url,
               social_discord: data.social_discord || prev.social_discord,
               social_instagram: data.social_instagram || prev.social_instagram,
               social_twitter: data.social_twitter || prev.social_twitter,
               social_youtube: data.social_youtube || prev.social_youtube,
-              support_email: data.support_email || prev.support_email,
-              seo_title: data.seo_title || prev.seo_title,
-              seo_description: data.seo_description || prev.seo_description,
+              support_email: sanitizeText(data.support_email) || prev.support_email,
+              seo_title: sanitizeText(data.seo_title) || prev.seo_title,
+              seo_description: sanitizeText(data.seo_description) || prev.seo_description,
               primary_color: data.primary_color || prev.primary_color,
             }));
           }
