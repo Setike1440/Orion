@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
+import { DEFAULT_CATEGORIES } from '../data/categoriesData';
 
 export interface SiteSettings {
   site_name: string;
@@ -94,6 +95,9 @@ interface SiteSettingsContextType {
   runSystemCleanup: (options: { logs: boolean; errors: boolean; cache: boolean }) => Promise<number>;
   createFullBackup: () => Promise<any>;
   restoreFromBackup: (backupData: any) => Promise<boolean>;
+  categoryCovers: Record<string, string>;
+  updateCategoryCover: (slugOrId: string, imageUrl: string) => Promise<void>;
+  updateAllCategoryCovers: (covers: Record<string, string>) => Promise<void>;
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
@@ -119,7 +123,7 @@ const DEFAULT_MAINTENANCE: MaintenanceSettings = {
 const DEFAULT_ANNOUNCEMENT: AnnouncementSettings = {
   enabled: true,
   text: 'Novas contas adicionadas hoje! Aproveite e salve seus jogos favoritos.',
-  link_url: '/sugerir-jogo',
+  link_url: '/como-funciona',
   icon: 'Sparkles',
   color: 'red',
   priority: 'normal',
@@ -151,7 +155,15 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [announcement, setAnnouncement] = useState<AnnouncementSettings>(() => {
     try {
       const saved = localStorage.getItem('orion_announcement_settings');
-      return saved ? { ...DEFAULT_ANNOUNCEMENT, ...JSON.parse(saved) } : DEFAULT_ANNOUNCEMENT;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.link_url === '/sugerir-jogo' || !parsed.link_url) {
+          parsed.link_url = '/como-funciona';
+          localStorage.setItem('orion_announcement_settings', JSON.stringify(parsed));
+        }
+        return { ...DEFAULT_ANNOUNCEMENT, ...parsed };
+      }
+      return DEFAULT_ANNOUNCEMENT;
     } catch (e) {
       return DEFAULT_ANNOUNCEMENT;
     }
@@ -184,6 +196,15 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const [clientIP, setClientIP] = useState<string>('189.122.45.10');
   const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([]);
+
+  const [categoryCovers, setCategoryCovers] = useState<Record<string, string>>(() => {
+    try {
+      const saved = localStorage.getItem('custom_category_covers');
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      return {};
+    }
+  });
 
   const [analytics, setAnalytics] = useState(() => {
     try {
@@ -255,9 +276,18 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
           if (data.announcement) {
             setAnnouncement(prev => {
               const merged = { ...DEFAULT_ANNOUNCEMENT, ...prev, ...data.announcement };
-              if (!merged.link_url) {
-                merged.link_url = prev.link_url || DEFAULT_ANNOUNCEMENT.link_url || '/sugerir-jogo';
+              if (!merged.link_url || merged.link_url === '/sugerir-jogo') {
+                merged.link_url = '/como-funciona';
               }
+              return merged;
+            });
+          }
+          if (data.category_covers && typeof data.category_covers === 'object') {
+            setCategoryCovers(prev => {
+              const merged = { ...prev, ...data.category_covers };
+              try {
+                localStorage.setItem('custom_category_covers', JSON.stringify(merged));
+              } catch (e) {}
               return merged;
             });
           }
@@ -289,11 +319,21 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
           if (data.maintenance) setMaintenance(prev => ({ ...DEFAULT_MAINTENANCE, ...prev, ...data.maintenance }));
           if (data.announcement) setAnnouncement(prev => {
             const merged = { ...DEFAULT_ANNOUNCEMENT, ...prev, ...data.announcement };
-            if (!merged.link_url) {
-              merged.link_url = prev.link_url || DEFAULT_ANNOUNCEMENT.link_url || '/sugerir-jogo';
+            if (!merged.link_url || merged.link_url === '/sugerir-jogo') {
+              merged.link_url = '/como-funciona';
             }
             return merged;
           });
+          if (data.category_covers && typeof data.category_covers === 'object') {
+            setCategoryCovers(prev => {
+              const merged = { ...prev, ...data.category_covers };
+              try {
+                localStorage.setItem('custom_category_covers', JSON.stringify(merged));
+                window.dispatchEvent(new Event('category_covers_updated'));
+              } catch (e) {}
+              return merged;
+            });
+          }
         }
       })
       .subscribe();
@@ -621,6 +661,90 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
+  const updateCategoryCover = async (slugOrId: string, imageUrl: string) => {
+    const updated = { ...categoryCovers, [slugOrId]: imageUrl };
+    setCategoryCovers(updated);
+    try {
+      localStorage.setItem('custom_category_covers', JSON.stringify(updated));
+      window.dispatchEvent(new Event('category_covers_updated'));
+
+      await supabase.from('site_settings').upsert([{ 
+        id: 1, 
+        site_name: settings.site_name,
+        logo_url: settings.logo_url,
+        favicon_url: settings.favicon_url,
+        social_discord: settings.social_discord,
+        social_instagram: settings.social_instagram,
+        social_twitter: settings.social_twitter,
+        social_youtube: settings.social_youtube,
+        support_email: settings.support_email,
+        seo_title: settings.seo_title,
+        seo_description: settings.seo_description,
+        primary_color: settings.primary_color,
+        maintenance: maintenance,
+        announcement: announcement,
+        category_covers: updated,
+        updated_at: new Date().toISOString()
+      }]);
+
+      const targetCat = DEFAULT_CATEGORIES.find(c => c.slug === slugOrId || c.id === slugOrId) || { id: slugOrId, name: slugOrId, slug: slugOrId };
+      const { error: upsertErr } = await supabase.from('categories').upsert({
+        id: targetCat.id,
+        name: targetCat.name,
+        slug: targetCat.slug,
+        image_url: imageUrl
+      }, { onConflict: 'slug' });
+
+      if (upsertErr) {
+        await supabase.from('categories').update({ image_url: imageUrl }).eq('slug', slugOrId);
+      }
+    } catch (e) {
+      console.error('Error updating category cover:', e);
+    }
+  };
+
+  const updateAllCategoryCovers = async (covers: Record<string, string>) => {
+    const updated = { ...categoryCovers, ...covers };
+    setCategoryCovers(updated);
+    try {
+      localStorage.setItem('custom_category_covers', JSON.stringify(updated));
+      window.dispatchEvent(new Event('category_covers_updated'));
+
+      await supabase.from('site_settings').upsert([{ 
+        id: 1, 
+        site_name: settings.site_name,
+        logo_url: settings.logo_url,
+        favicon_url: settings.favicon_url,
+        social_discord: settings.social_discord,
+        social_instagram: settings.social_instagram,
+        social_twitter: settings.social_twitter,
+        social_youtube: settings.social_youtube,
+        support_email: settings.support_email,
+        seo_title: settings.seo_title,
+        seo_description: settings.seo_description,
+        primary_color: settings.primary_color,
+        maintenance: maintenance,
+        announcement: announcement,
+        category_covers: updated,
+        updated_at: new Date().toISOString()
+      }]);
+
+      for (const [key, url] of Object.entries(covers)) {
+        try {
+          const targetCat = DEFAULT_CATEGORIES.find(c => c.slug === key || c.id === key) || { id: key, name: key, slug: key };
+          await supabase.from('categories').upsert({
+            id: targetCat.id,
+            name: targetCat.name,
+            slug: targetCat.slug,
+            image_url: url
+          }, { onConflict: 'slug' });
+        } catch (e) {}
+      }
+    } catch (e) {
+      console.error('Error updating all category covers:', e);
+    }
+  };
+
   const logError = async (error: Omit<SystemErrorLog, 'id' | 'timestamp' | 'status'>) => {
     const newLog: SystemErrorLog = {
       ...error,
@@ -926,7 +1050,10 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         trackGameView,
         runSystemCleanup,
         createFullBackup,
-        restoreFromBackup
+        restoreFromBackup,
+        categoryCovers,
+        updateCategoryCover,
+        updateAllCategoryCovers
       }}
     >
       {children}

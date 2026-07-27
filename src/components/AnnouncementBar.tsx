@@ -1,10 +1,12 @@
 import React from 'react';
 import { useSiteSettings } from '../contexts/SiteSettingsContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Sparkles, Bell, AlertTriangle, Info, Megaphone, ArrowRight, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const AnnouncementBar = () => {
-  const { announcement, updateAnnouncement } = useSiteSettings();
+  const { announcement } = useSiteSettings();
+  const { t } = useLanguage();
   const [dismissed, setDismissed] = React.useState(false);
 
   if (!announcement.enabled || dismissed) return null;
@@ -36,6 +38,23 @@ export const AnnouncementBar = () => {
     }
   };
 
+  const getLinkColorClasses = () => {
+    switch (announcement.color) {
+      case 'amber':
+        return 'text-amber-300 hover:text-amber-100';
+      case 'emerald':
+        return 'text-emerald-300 hover:text-emerald-100';
+      case 'blue':
+        return 'text-blue-300 hover:text-blue-100';
+      case 'purple':
+        return 'text-purple-300 hover:text-purple-100';
+      case 'white':
+        return 'text-white hover:text-gray-200';
+      case 'red': default:
+        return 'text-[#FF0000] hover:text-[#ff6666]';
+    }
+  };
+
   return (
     <div className={`w-full py-2 px-4 border-b text-xs font-semibold flex items-center justify-between gap-3 relative z-50 transition-all ${getColorClasses()}`}>
       <div className="max-w-7xl mx-auto flex-1 flex items-center justify-center gap-2 text-center">
@@ -43,11 +62,11 @@ export const AnnouncementBar = () => {
         <div className="inline-flex items-center gap-1.5 flex-wrap justify-center">
           <span>{announcement.text}</span>
           <Link 
-            to="/como-funciona" 
-            className="inline-flex items-center gap-1 underline underline-offset-2 text-[#FF0000] hover:text-[#ff6666] font-bold transition-colors"
+            to={announcement.link_url && announcement.link_url !== '/sugerir-jogo' ? announcement.link_url : "/como-funciona"} 
+            className={`inline-flex items-center gap-1 underline underline-offset-2 font-bold transition-colors ${getLinkColorClasses()}`}
           >
-            <span>Saber mais</span>
-            <ArrowRight className="w-3 h-3 text-[#FF0000] hover:text-[#ff6666]" />
+            <span>{t('learn_more') || 'Saber mais'}</span>
+            <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
       </div>

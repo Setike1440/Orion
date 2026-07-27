@@ -1080,6 +1080,26 @@ export const translations: Translations = {
     pt: "Sugestões dos Clientes",
     en: "Client Suggestions",
     es: "Sugerencias de Clientes"
+  },
+  "learn_more": {
+    pt: "Saber mais",
+    en: "Learn more",
+    es: "Saber más"
+  },
+  "know_more": {
+    pt: "Saiba mais",
+    en: "Learn more",
+    es: "Saber más"
+  },
+  "how_it_works_sirius": {
+    pt: "Como Funciona a Sirius →",
+    en: "How Sirius Works →",
+    es: "Cómo Funciona Sirius →"
+  },
+  "back_to_home": {
+    pt: "Voltar ao Início",
+    en: "Back to Home",
+    es: "Volver al Inicio"
   }
 };
 
@@ -1109,7 +1129,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [language]);
 
   const t = (key: string) => {
-    return translations[key]?.[language] || key;
+    return translations[key]?.[language] || translations[key]?.pt || key;
   };
 
   return (

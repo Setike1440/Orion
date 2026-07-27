@@ -6,7 +6,7 @@ import { Gamepad2, X, Mail, Lock, Eye, EyeOff, ArrowRight, CheckCircle, Shield }
 
 export const AuthModal: React.FC = () => {
   const { isAuthModalOpen, closeAuthModal, authModalTab, openAuthModal } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const [tab, setTab] = useState<'login' | 'register'>(authModalTab);
   const [email, setEmail] = useState('');
@@ -44,6 +44,84 @@ export const AuthModal: React.FC = () => {
 
   if (!isAuthModalOpen) return null;
 
+  const translateAuthError = (msg: string, lang: 'pt' | 'en' | 'es'): string => {
+    if (!msg) {
+      if (lang === 'en') return 'An error occurred while processing your request.';
+      if (lang === 'es') return 'Ocurrió un error al procesar su solicitud.';
+      return 'Ocorreu um erro ao processar sua solicitação.';
+    }
+
+    const lower = msg.toLowerCase();
+
+    if (
+      lower.includes('invalid login credentials') ||
+      lower.includes('invalid_credentials') ||
+      lower.includes('invalid email or password') ||
+      lower.includes('invalid username or password') ||
+      lower.includes('invalid_grant')
+    ) {
+      if (lang === 'en') return 'Invalid email or password.';
+      if (lang === 'es') return 'E-mail o contraseña incorrectos.';
+      return 'E-mail ou senha incorretos.';
+    }
+
+    if (lower.includes('email not confirmed')) {
+      if (lang === 'en') return 'Email not confirmed. Please check your inbox.';
+      if (lang === 'es') return 'Correo electrónico no confirmado.';
+      return 'E-mail ainda não confirmado. Verifique sua caixa de entrada.';
+    }
+
+    if (
+      lower.includes('already registered') ||
+      lower.includes('already exists') ||
+      lower.includes('user_already_exists')
+    ) {
+      if (lang === 'en') return 'User with this email is already registered.';
+      if (lang === 'es') return 'Este correo electrónico ya está registrado.';
+      return 'Este e-mail já está cadastrado.';
+    }
+
+    if (lower.includes('at least 6 characters') || lower.includes('password should be')) {
+      if (lang === 'en') return 'Password must be at least 6 characters.';
+      if (lang === 'es') return 'La contraseña debe tener al menos 6 caracteres.';
+      return 'A senha deve ter pelo menos 6 caracteres.';
+    }
+
+    if (lower.includes('rate limit') || lower.includes('too many requests')) {
+      if (lang === 'en') return 'Too many requests. Please wait a moment.';
+      if (lang === 'es') return 'Demasiadas solicitudes. Espera un momento.';
+      return 'Muitas tentativas. Por favor, aguarde um momento e tente novamente.';
+    }
+
+    if (lower.includes('invalid email') || lower.includes('validate email')) {
+      if (lang === 'en') return 'Invalid email address.';
+      if (lang === 'es') return 'Correo electrónico inválido.';
+      return 'E-mail inválido.';
+    }
+
+    if (lower.includes('as senhas não coincidem') || lower.includes('passwords do not match')) {
+      if (lang === 'en') return 'Passwords do not match.';
+      if (lang === 'es') return 'Las contraseñas no coinciden.';
+      return 'As senhas não coincidem.';
+    }
+
+    if (lang === 'en') return msg;
+    if (lang === 'es') return msg;
+    return 'E-mail ou senha incorretos ou erro no servidor.';
+  };
+
+  const getSuccessMessage = (type: 'login' | 'register', lang: 'pt' | 'en' | 'es') => {
+    if (type === 'login') {
+      if (lang === 'en') return 'Login successful!';
+      if (lang === 'es') return '¡Inicio de sesión con éxito!';
+      return 'Login realizado com sucesso!';
+    } else {
+      if (lang === 'en') return 'Account created successfully! Log in to continue.';
+      if (lang === 'es') return '¡Cuenta creada con éxito! Inicia sesión para continuar.';
+      return 'Conta criada com sucesso! Faça login para continuar.';
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -65,16 +143,16 @@ export const AuthModal: React.FC = () => {
           localStorage.removeItem('orion_saved_login_email');
         }
 
-        setSuccess('Login realizado com sucesso!');
+        setSuccess(getSuccessMessage('login', language));
         setTimeout(() => {
           closeAuthModal();
         }, 800);
       } else {
         if (password !== confirmPassword) {
-          throw new Error('As senhas não coincidem.');
+          throw new Error('passwords do not match');
         }
         if (password.length < 6) {
-          throw new Error('A senha deve ter pelo menos 6 caracteres.');
+          throw new Error('password should be at least 6 characters');
         }
 
         const { data, error } = await supabase.auth.signUp({
@@ -91,14 +169,14 @@ export const AuthModal: React.FC = () => {
           ]);
         }
 
-        setSuccess('Conta criada com sucesso! Faça login para continuar.');
+        setSuccess(getSuccessMessage('register', language));
         setTimeout(() => {
           setTab('login');
           setSuccess(null);
         }, 1200);
       }
     } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro no servidor.');
+      setError(translateAuthError(err.message || '', language));
     } finally {
       setLoading(false);
     }

@@ -15,6 +15,7 @@ import { CategoryPage } from './pages/CategoryPage';
 import { HowItWorks } from './pages/HowItWorks';
 import { CanIRunIt } from './pages/CanIRunIt';
 import { SuggestGame } from './pages/SuggestGame';
+import { TermsOfUse, SecurityPage, LifetimeWarrantyPage, SafePaymentPage } from './pages/SupportPages';
 import { AdminRoutes } from './pages/admin/AdminRoutes';
 import { AuthModal } from './components/AuthModal';
 import { ScrollToTop } from './components/ScrollToTop';
@@ -87,6 +88,10 @@ export default function App() {
               <Route path="can-i-run" element={<CanIRunIt />} />
               <Route path="sugerir-jogo" element={<SuggestGame />} />
               <Route path="pedir-jogo" element={<SuggestGame />} />
+              <Route path="termos-de-uso" element={<TermsOfUse />} />
+              <Route path="seguranca" element={<SecurityPage />} />
+              <Route path="garantia-vitalicia" element={<LifetimeWarrantyPage />} />
+              <Route path="pagamento-seguro" element={<SafePaymentPage />} />
             </Route>
             <Route path="/painel/*" element={<AdminRoutes />} />
             <Route path="/admin/*" element={<AdminRoutes />} />

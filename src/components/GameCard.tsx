@@ -179,13 +179,16 @@ export const GameCard: React.FC<GameCardProps> = ({ game, isLoading }) => {
         </h3>
         <p className="text-[11px] text-gray-400 mb-2">{getCategoryTranslation(game.category?.name, t) || 'Steam Offline'}</p>
         
-        <div className="mt-auto flex items-center justify-between pt-2 border-t border-[#1f212a]">
-          <div className="flex flex-col">
-            <span className="text-[9px] text-[#FF0000] uppercase tracking-wider font-semibold">{t('included')}</span>
-            <span className="text-gray-400 text-[11px]">{t('active_sub')}</span>
-          </div>
-          <div className="px-2.5 py-1 rounded-full bg-[#171821] group-hover:bg-[#FF0000] text-gray-300 group-hover:text-white border border-[#20222c] group-hover:border-[#FF0000] flex items-center justify-center transition-all text-[11px] font-semibold">
-             {t('access')}
+        <div className="mt-auto pt-2.5 relative">
+          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#2d303e] to-transparent" />
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-[9px] text-[#FF0000] uppercase tracking-wider font-semibold">{t('included')}</span>
+              <span className="text-gray-400 text-[11px]">{t('active_sub')}</span>
+            </div>
+            <div className="px-2.5 py-1 rounded-full bg-[#171821] group-hover:bg-[#FF0000] text-gray-300 group-hover:text-white border border-[#20222c] group-hover:border-[#FF0000] flex items-center justify-center transition-all text-[11px] font-semibold">
+               {t('access')}
+            </div>
           </div>
         </div>
       </div>

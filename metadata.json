@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "Sirius",
+  "description": "Sua biblioteca de jogos PC offline com suporte e garantia.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

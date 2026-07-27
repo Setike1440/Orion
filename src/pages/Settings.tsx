@@ -100,12 +100,14 @@ export const Settings = () => {
               <p className="text-gray-400 text-xs sm:text-sm flex items-center gap-2">
                 <Mail className="w-4 h-4 text-gray-500" /> {profile?.email || user.email}
               </p>
-              <div className="mt-3 inline-flex items-center gap-2 bg-[#181920] border border-[#1f212a] px-3 py-1 rounded-full">
-                <Shield className="w-3.5 h-3.5 text-[#FF0000]" />
-                <span className="text-xs font-medium text-gray-300 capitalize">
-                  Role: {profile?.role || 'Nenhuma'}
-                </span>
-              </div>
+              {profile?.role?.trim().toLowerCase() === 'admin' && (
+                <div className="mt-3 inline-flex items-center gap-2 bg-[#181920] border border-[#1f212a] px-3 py-1 rounded-full">
+                  <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="text-xs font-medium text-gray-300 capitalize">
+                    Admin
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 

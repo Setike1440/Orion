@@ -60,6 +60,22 @@ export const HowItWorks = () => {
     {
       q: t('faq_q4'),
       a: t('faq_a4')
+    },
+    {
+      q: 'Os jogos funcionam no modo multiplayer ou apenas história offline?',
+      a: 'Nossa biblioteca é focada no modo história e campanha offline. Todos os jogos funcionam perfeitamente no Modo Offline da Steam, salvando seu progresso e conquistas locais com total estabilidade.'
+    },
+    {
+      q: 'Quantos computadores posso utilizar com a minha conta?',
+      a: 'O acesso aos jogos é liberado para uso em um único computador por assinatura ativada, garantindo a melhor performance e disponibilidade.'
+    },
+    {
+      q: 'O que acontece quando o jogo recebe atualizações ou novas DLCs?',
+      a: 'Todas as atualizações, correções de bugs e DLCs oficiais lançadas pelos desenvolvedores na Steam são baixadas e sincronizadas automaticamente nas contas da biblioteca.'
+    },
+    {
+      q: 'Como funciona o suporte técnico caso eu tenha alguma dúvida?',
+      a: 'Temos um canal de suporte rápido via WhatsApp e E-mail. Caso surja qualquer dúvida sobre instalação, login ou configuração do modo offline, nossa equipe atende você prontamente.'
     }
   ];
 
@@ -133,13 +149,13 @@ export const HowItWorks = () => {
               return (
                 <div 
                   key={step.number}
-                  className="bg-[#121318] border border-[#1f212a] hover:border-[#2e313e] hover:bg-[#16171f] p-6 rounded-2xl transition-all duration-200 shadow-sm group relative overflow-hidden"
+                  className="bg-[#121318] border border-[#1f212a] p-6 rounded-2xl shadow-sm relative overflow-hidden"
                 >
                   <div className="flex items-start justify-between mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-[#181920] border border-[#20222c] text-[#FF0000] flex items-center justify-center group-hover:scale-105 group-hover:border-[#333647] transition-all">
+                    <div className="w-10 h-10 rounded-xl bg-[#181920] border border-[#20222c] text-[#FF0000] flex items-center justify-center">
                       <Icon className="w-5 h-5" />
                     </div>
-                    <span className="text-2xl font-extrabold text-gray-700/60 group-hover:text-gray-500 transition-colors">
+                    <span className="text-2xl font-extrabold text-gray-700/60">
                       {step.number}
                     </span>
                   </div>

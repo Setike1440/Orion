@@ -77,11 +77,5 @@ export const DEFAULT_CATEGORIES: CategoryItem[] = [
     name: 'Anime',
     slug: 'anime',
     image_url: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=600'
-  },
-  {
-    id: 'admin-highline-game',
-    name: 'Admin Highline Game',
-    slug: 'admin-highline-game',
-    image_url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=600'
   }
 ];

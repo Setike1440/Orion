@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { GameCard, Game } from '../components/GameCard';
 import { useLanguage, getCategoryTranslation } from '../contexts/LanguageContext';
+import { useSiteSettings } from '../contexts/SiteSettingsContext';
 import { ArrowLeft } from 'lucide-react';
 import { DEFAULT_CATEGORIES } from '../data/categoriesData';
 import { Breadcrumb } from '../components/Breadcrumb';
@@ -15,13 +16,20 @@ export const CategoryPage = () => {
   const [games, setGames] = useState<Game[]>([]);
   const [category, setCategory] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { categoryCovers } = useSiteSettings();
   const { t } = useLanguage();
 
   usePageTitle(category?.name || 'Categoria');
 
   useEffect(() => {
     fetchCategoryAndGames();
-  }, [slug]);
+
+    const handleUpdate = () => {
+      fetchCategoryAndGames();
+    };
+    window.addEventListener('category_covers_updated', handleUpdate);
+    return () => window.removeEventListener('category_covers_updated', handleUpdate);
+  }, [slug, categoryCovers]);
 
   const fetchCategoryAndGames = async () => {
     setLoading(true);
@@ -36,6 +44,12 @@ export const CategoryPage = () => {
       }
 
       if (catData) {
+        const customCovers = categoryCovers || JSON.parse(localStorage.getItem('custom_category_covers') || '{}');
+        const customImg = customCovers[catData.slug] || customCovers[catData.id] || customCovers[catData.name?.toLowerCase()];
+        if (customImg) {
+          catData = { ...catData, image_url: customImg };
+        }
+
         setCategory(catData);
         let gamesData: any[] = [];
         

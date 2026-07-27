@@ -6,6 +6,7 @@ import { Skeleton } from '../components/Skeleton';
 import { Flame, Sparkles, Search, Gamepad2, LayoutGrid, ChevronLeft, ChevronRight, ArrowRight, HelpCircle, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useSiteSettings } from '../contexts/SiteSettingsContext';
 import { DEFAULT_CATEGORIES } from '../data/categoriesData';
 import { sortGamesAlphanumeric } from '../lib/gameUtils';
 import { usePageTitle } from '../hooks/usePageTitle';
@@ -147,9 +148,17 @@ export const Home = () => {
     }
   };
 
+  const { categoryCovers } = useSiteSettings();
+
   useEffect(() => {
     fetchGames();
-  }, [user]);
+
+    const handleUpdate = () => {
+      fetchGames();
+    };
+    window.addEventListener('category_covers_updated', handleUpdate);
+    return () => window.removeEventListener('category_covers_updated', handleUpdate);
+  }, [user, categoryCovers]);
 
   const fetchGames = async () => {
     try {
@@ -181,7 +190,14 @@ export const Home = () => {
           mergedCats.push(defCat);
         }
       });
-      setCategories(mergedCats);
+
+      const customCovers = categoryCovers || JSON.parse(localStorage.getItem('custom_category_covers') || '{}');
+      const catsWithCustomCovers = mergedCats.map(c => {
+        const customImg = customCovers[c.slug] || customCovers[c.id] || customCovers[c.name?.toLowerCase()];
+        return customImg ? { ...c, image_url: customImg } : c;
+      });
+
+      setCategories(catsWithCustomCovers);
 
       let localHighlights: Record<string, any> = {};
       try {
@@ -253,10 +269,10 @@ export const Home = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder={t('hero_search')} 
-                className="w-full bg-[#121318] border border-[#20222c] rounded-full py-3.5 px-5 pl-12 pr-10 text-sm focus:outline-none focus:border-[#FF0000] focus:ring-2 focus:ring-[#FF0000]/15 transition-all text-white placeholder-gray-500 shadow-sm"
+                className="w-full bg-[#121318] border border-[#20222c] rounded-full py-3.5 px-5 pl-12 pr-10 text-sm focus:outline-none focus:border-[#383b4e] focus:ring-2 focus:ring-[#383b4e]/20 transition-all text-white placeholder-gray-500 shadow-sm"
               />
               <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                <Search className="w-4 h-4 text-gray-500 group-focus-within:text-[#FF0000] transition-colors" />
+                <Search className="w-4 h-4 text-gray-500 group-focus-within:text-gray-300 transition-colors" />
               </div>
               {searchTerm && (
                 <button
@@ -275,7 +291,7 @@ export const Home = () => {
               className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-white transition-colors cursor-pointer group/link"
             >
               <HelpCircle className="w-3.5 h-3.5 text-gray-400 group-hover/link:text-white transition-all" />
-              <span>{t('how_it_works')}</span>
+              <span>{t('how_it_works_sirius') || 'Como Funciona a Sirius →'}</span>
             </Link>
           </div>
         </div>

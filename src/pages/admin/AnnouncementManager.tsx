@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSiteSettings } from '../../contexts/SiteSettingsContext';
-import { Megaphone, Save, Sparkles } from 'lucide-react';
+import { Megaphone, Save, Sparkles, ArrowRight } from 'lucide-react';
 import { AdminToast } from '../../components/admin/AdminModal';
 
 export const AnnouncementManager = () => {
@@ -46,7 +46,20 @@ export const AnnouncementManager = () => {
           'bg-[#FF0000]/15 border-[#FF0000]/30 text-[#FF0000]'
         }`}>
           <Sparkles className="w-3.5 h-3.5 shrink-0" />
-          <span>{formData.text || 'Digite o texto do aviso abaixo...'}</span>
+          <div className="inline-flex items-center gap-1.5 flex-wrap justify-center">
+            <span>{formData.text || 'Digite o texto do aviso abaixo...'}</span>
+            <span className={`inline-flex items-center gap-1 underline underline-offset-2 font-bold transition-colors cursor-pointer ${
+              formData.color === 'amber' ? 'text-amber-300 hover:text-amber-100' :
+              formData.color === 'emerald' ? 'text-emerald-300 hover:text-emerald-100' :
+              formData.color === 'blue' ? 'text-blue-300 hover:text-blue-100' :
+              formData.color === 'purple' ? 'text-purple-300 hover:text-purple-100' :
+              formData.color === 'white' ? 'text-white hover:text-gray-200' :
+              'text-[#FF0000] hover:text-[#ff6666]'
+            }`}>
+              <span>Saber mais</span>
+              <ArrowRight className="w-3 h-3" />
+            </span>
+          </div>
         </div>
       </div>
 
@@ -84,7 +97,7 @@ export const AnnouncementManager = () => {
               type="text"
               value={formData.link_url || ''}
               onChange={e => setFormData({ ...formData, link_url: e.target.value })}
-              placeholder="Ex: /sugerir-jogo"
+              placeholder="Ex: /como-funciona"
               className="w-full bg-[#181920] border border-[#20222c] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#FF0000]"
             />
           </div>
@@ -96,7 +109,7 @@ export const AnnouncementManager = () => {
               onChange={e => setFormData({ ...formData, color: e.target.value as any })}
               className="w-full bg-[#181920] border border-[#20222c] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#FF0000]"
             >
-              <option value="red">Vermelho (Padrão Orion)</option>
+              <option value="red">Vermelho (Padrão Sirius)</option>
               <option value="white">Branco (Destaque Limpo)</option>
               <option value="amber">Amarelo / Alerta</option>
               <option value="emerald">Verde / Sucesso</option>

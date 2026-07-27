@@ -6,10 +6,11 @@ import { Skeleton } from '../../components/Skeleton';
 import { 
   LayoutDashboard, Users, Gamepad2, ScrollText, ArrowLeft, LogOut, Shield, 
   MessageSquarePlus, ChevronLeft, ChevronRight, BarChart3, Settings, Wrench, 
-  Database, Lock, Globe, Bug, Megaphone, Sparkles
+  Database, Lock, Globe, Bug, Megaphone, Sparkles, Images
 } from 'lucide-react';
 import { DashboardHome } from './DashboardHome';
 import { GamesManager } from './GamesManager';
+import { CategoryCoversManager } from './CategoryCoversManager';
 import { UsersManager } from './UsersManager';
 import { LogsManager } from './LogsManager';
 import { SuggestionsManager } from './SuggestionsManager';
@@ -49,6 +50,7 @@ const AdminLayout = () => {
   const navItems = [
     { name: t('admin_dashboard'), path: '/admin', icon: LayoutDashboard },
     { name: t('admin_games'), path: '/admin/games', icon: Gamepad2 },
+    { name: 'Capas das Categorias', path: '/admin/category-covers', icon: Images },
     { name: 'Sugestões', path: '/admin/suggestions', icon: MessageSquarePlus },
     { name: t('admin_users'), path: '/admin/users', icon: Users },
     { name: 'Analytics', path: '/admin/analytics', icon: BarChart3 },
@@ -171,6 +173,7 @@ export const AdminRoutes = () => {
       <Route element={<AdminLayout />}>
         <Route index element={<DashboardHome />} />
         <Route path="games" element={<GamesManager />} />
+        <Route path="category-covers" element={<CategoryCoversManager />} />
         <Route path="suggestions" element={<SuggestionsManager />} />
         <Route path="users" element={<UsersManager />} />
         <Route path="analytics" element={<AnalyticsManager />} />

@@ -120,16 +120,16 @@ export const Navbar = () => {
               />
             </Link>
 
-            <div className={`hidden md:flex max-w-lg w-full relative transition-all duration-200 ${showNavbarSearch ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} ref={searchRef}>
+            <div className={`hidden md:flex max-w-lg w-full relative transition-all duration-200 group ${showNavbarSearch ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} ref={searchRef}>
               <input 
                 type="text" 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onFocus={() => { if (searchResults.length > 0) setShowResults(true) }}
                 placeholder={t('search_placeholder')} 
-                className="w-full bg-[#0d0e12] border border-[#20222c] rounded-full py-2 px-4 pl-10 pr-10 text-xs sm:text-sm focus:outline-none focus:border-[#FF0000] focus:ring-2 focus:ring-[#FF0000]/15 transition-all text-white placeholder-gray-500"
+                className="w-full bg-[#0d0e12] border border-[#20222c] rounded-full py-2 px-4 pl-10 pr-10 text-xs sm:text-sm focus:outline-none focus:border-[#3a3e52] focus:ring-2 focus:ring-[#3a3e52]/20 transition-all text-white placeholder-gray-500"
               />
-              <Search className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-4 h-4 text-gray-500 group-focus-within:text-gray-300 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none transition-colors" />
               {searchTerm && (
                 <button
                   type="button"
@@ -229,12 +229,14 @@ export const Navbar = () => {
                       <div className="px-3 py-2 border-b border-[#1f212a] mb-1.5">
                         <p className="text-[11px] text-gray-500">{t('logged_in_as')}</p>
                         <p className="text-xs font-semibold text-white truncate">{profile?.email || user?.email}</p>
-                        <p className="text-[11px] text-[#FF0000] font-medium mt-0.5 capitalize">Role: {profile?.role || 'Nenhuma'}</p>
+                        {profile?.role?.trim().toLowerCase() === 'admin' && (
+                          <p className="text-[11px] text-emerald-400 font-medium mt-0.5 capitalize">Admin</p>
+                        )}
                       </div>
                       {profile?.role?.trim().toLowerCase() === 'admin' && (
                         <Link 
                           to="/painel" 
-                          className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-gray-300 hover:text-[#FF0000] hover:bg-[#1a1c26] rounded-lg transition-colors mb-0.5"
+                          className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-gray-300 hover:text-white hover:bg-[#1a1c26] rounded-lg transition-colors mb-0.5"
                         >
                           <ShieldAlert className="w-4 h-4" />
                           <span>{t('dashboard')}</span>
@@ -242,7 +244,7 @@ export const Navbar = () => {
                       )}
                       <Link 
                         to="/configuracoes" 
-                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-gray-300 hover:text-[#FF0000] hover:bg-[#1a1c26] rounded-lg transition-colors mb-0.5"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-gray-300 hover:text-white hover:bg-[#1a1c26] rounded-lg transition-colors mb-0.5"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
                         <span>{t('settings') || 'Configurações'}</span>

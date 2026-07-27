@@ -20,7 +20,8 @@ import {
   Zap,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ArrowRight
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { usePageTitle } from '../hooks/usePageTitle';
@@ -290,14 +291,14 @@ export const CanIRunIt = () => {
           
           {/* Search bar on top of horizontal section */}
           <div className="space-y-3">
-            <div className="relative">
-              <Search className="w-4 h-4 text-gray-500 absolute left-3.5 top-3" />
+            <div className="relative group">
+              <Search className="w-4 h-4 text-gray-500 group-focus-within:text-gray-300 transition-colors absolute left-3.5 top-3" />
               <input 
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Buscar jogo na biblioteca..."
-                className="w-full bg-[#000000] border border-[#20222c] focus:border-[#FF0000] rounded-xl pl-9 pr-9 py-2.5 text-xs sm:text-sm text-white outline-none transition-all placeholder-gray-500 shadow-inner"
+                className="w-full bg-[#000000] border border-[#20222c] focus:border-[#383b4e] rounded-xl pl-9 pr-9 py-2.5 text-xs sm:text-sm text-white outline-none transition-all placeholder-gray-500 shadow-inner"
               />
               {searchQuery && (
                 <button
@@ -605,7 +606,7 @@ export const CanIRunIt = () => {
                 className="w-full py-3.5 px-4 bg-[#FF0000] border border-[#FF0000] text-white font-semibold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
               >
                 <span>Acessar Jogo e Credenciais</span>
-                <Sparkles className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 
