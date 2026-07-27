@@ -83,10 +83,19 @@ interface ToastProps {
 }
 
 export const AdminToast: React.FC<ToastProps> = ({ message, type = 'success', onClose }) => {
+  React.useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [message, onClose]);
+
   if (!message) return null;
 
   return (
-    <div className="fixed top-5 right-5 z-50 flex items-center gap-3 bg-[#121318] border border-[#1f212a] p-4 rounded-2xl shadow-2xl max-w-sm animate-in slide-in-from-top-2 duration-300">
+    <div className="fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-[#121318] border border-[#1f212a] p-4 rounded-2xl shadow-2xl max-w-sm animate-in slide-in-from-bottom-2 duration-300">
       <div
         className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
           type === 'error'

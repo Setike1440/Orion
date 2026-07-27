@@ -1,9 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSiteSettings } from '../../contexts/SiteSettingsContext';
-import { BarChart3, Eye, Heart, Users, Gamepad2, ArrowUpRight } from 'lucide-react';
+import { BarChart3, Eye, Heart, Users, Gamepad2, ArrowUpRight, RotateCw } from 'lucide-react';
+import { AdminToast } from '../../components/admin/AdminModal';
 
 export const AnalyticsManager = () => {
-  const { analytics } = useSiteSettings();
+  const { analytics, refreshAnalytics } = useSiteSettings();
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const handleRefresh = async () => {
+    await refreshAnalytics();
+    setToastMessage('Estatísticas atualizadas com sucesso!');
+  };
 
   const totalPageViews = (Object.values(analytics.pageViews) as number[]).reduce((a, b) => a + b, 0);
   const gameViewsEntries = Object.entries(analytics.gameViews) as [string, { title: string; views: number }][];
@@ -11,6 +18,8 @@ export const AnalyticsManager = () => {
 
   return (
     <div className="space-y-6">
+      <AdminToast message={toastMessage} type="success" onClose={() => setToastMessage(null)} />
+
       <div className="flex items-center justify-between pb-4 border-b border-[#1f212a]">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
@@ -21,6 +30,15 @@ export const AnalyticsManager = () => {
             Métricas em tempo real de acessos, jogos mais visualizados, favoritos e usuários cadastrados.
           </p>
         </div>
+
+        <button
+          type="button"
+          onClick={handleRefresh}
+          className="bg-[#121318] border border-[#20222c] hover:border-[#3a3d52] hover:bg-[#1a1c26] text-gray-300 hover:text-white font-semibold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm shrink-0"
+        >
+          <RotateCw className="w-4 h-4 text-[#FF0000]" />
+          <span>Atualizar</span>
+        </button>
       </div>
 
       {/* Summary Cards */}

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useSiteSettings } from '../../contexts/SiteSettingsContext';
-import { Megaphone, Save, CheckCircle2, Sparkles, Bell, AlertTriangle, Info } from 'lucide-react';
+import { Megaphone, Save, Sparkles } from 'lucide-react';
+import { AdminToast } from '../../components/admin/AdminModal';
 
 export const AnnouncementManager = () => {
   const { announcement, updateAnnouncement } = useSiteSettings();
   const [formData, setFormData] = useState({ ...announcement });
-  const [saved, setSaved] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setFormData({ ...announcement });
@@ -14,12 +15,13 @@ export const AnnouncementManager = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await updateAnnouncement(formData);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setToastMessage('Barra de avisos atualizada e ativa em todo o site!');
   };
 
   return (
     <div className="space-y-6">
+      <AdminToast message={toastMessage} type="success" onClose={() => setToastMessage(null)} />
+
       <div className="flex items-center justify-between pb-4 border-b border-[#1f212a]">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
@@ -31,13 +33,6 @@ export const AnnouncementManager = () => {
           </p>
         </div>
       </div>
-
-      {saved && (
-        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs sm:text-sm font-semibold flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>Barra de avisos atualizada e ativa em todo o site!</span>
-        </div>
-      )}
 
       {/* Live Preview Box */}
       <div className="bg-[#0d0e12] border border-[#1f212a] rounded-2xl p-6 space-y-3">

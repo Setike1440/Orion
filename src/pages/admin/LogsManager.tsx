@@ -138,17 +138,17 @@ export const LogsManager = () => {
         <div className="flex items-center gap-3 shrink-0">
           <button 
             onClick={fetchLogs}
-            className="bg-[#0d0e12] border border-[#20222c] hover:bg-[#1a1c26] hover:border-[#3a3d52] text-gray-300 hover:text-white font-semibold text-xs px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+            className="bg-[#121318] border border-[#20222c] hover:border-[#3a3d52] hover:bg-[#1a1c26] text-gray-300 hover:text-white font-semibold text-xs px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 text-[#FF0000] ${loading ? 'animate-spin' : ''}`} />
             <span>Atualizar</span>
           </button>
 
           <button 
             onClick={handleClearLogs}
-            className="bg-[#0d0e12] border border-[#20222c] hover:bg-[#FF0000]/10 hover:border-[#FF0000]/30 text-[#FF0000] font-semibold text-xs px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+            className="bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 font-semibold text-xs px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm"
           >
-            <Trash2 className="w-3.5 h-3.5 text-[#FF0000]" />
+            <Trash2 className="w-3.5 h-3.5 text-red-400" />
             <span>{t('admin_clear_logs')}</span>
           </button>
         </div>

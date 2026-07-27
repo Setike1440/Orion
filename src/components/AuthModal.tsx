@@ -244,11 +244,8 @@ export const AuthModal: React.FC = () => {
           {tab === 'login' && (
             <div 
               onClick={() => setSaveCredentials(!saveCredentials)}
-              className="flex items-center justify-between gap-2.5 pt-1 pb-0.5 cursor-pointer select-none group"
+              className="flex items-center gap-2.5 pt-1 pb-0.5 cursor-pointer select-none group"
             >
-              <span className="font-medium text-xs text-gray-300 group-hover:text-white transition-colors">
-                {t('save_credentials_q')}
-              </span>
               <button
                 type="button"
                 role="switch"
@@ -264,6 +261,9 @@ export const AuthModal: React.FC = () => {
                   }`}
                 />
               </button>
+              <span className="font-medium text-xs text-gray-300 group-hover:text-white transition-colors">
+                {t('save_credentials_q')}
+              </span>
             </div>
           )}
 

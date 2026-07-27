@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase, createIsolatedSupabaseClient } from '../../lib/supabase';
-import { Users, UserPlus, Shield, Trash2, Search, X, Check, Mail, Calendar, Edit2, Key, UserCheck } from 'lucide-react';
+import { Users, UserPlus, Shield, Trash2, Search, X, Check, Mail, Calendar, Edit2, Key, UserCheck, RotateCw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { ConfirmModal, AdminToast } from '../../components/admin/AdminModal';
@@ -326,13 +326,28 @@ export const UsersManager = () => {
           <p className="text-gray-400 text-xs sm:text-sm mt-1">Gerencie os acessos, nomes de usuário e permissões</p>
         </div>
 
-        <button 
-          onClick={handleOpenAddModal}
-          className="bg-[#FF0000] hover:bg-[#e60000] text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm shrink-0"
-        >
-          <UserPlus className="w-4 h-4" />
-          <span>{t('admin_add_user')}</span>
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button 
+            type="button"
+            onClick={() => {
+              fetchUsers();
+              setToastMessage('Usuários atualizados com sucesso!');
+              setToastType('success');
+            }}
+            className="bg-[#121318] border border-[#20222c] hover:border-[#3a3d52] hover:bg-[#1a1c26] text-gray-300 hover:text-white font-semibold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+          >
+            <RotateCw className="w-4 h-4 text-[#FF0000]" />
+            <span>Atualizar</span>
+          </button>
+
+          <button 
+            onClick={handleOpenAddModal}
+            className="bg-[#FF0000] hover:bg-[#e60000] text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm shrink-0"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>{t('admin_add_user')}</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter and Search */}
@@ -503,20 +518,20 @@ export const UsersManager = () => {
                 </select>
               </div>
 
-              <div className="pt-4 flex justify-end gap-3 border-t border-[#1f212a] mt-6">
+              <div className="pt-4 flex items-center gap-3 border-t border-[#1f212a] mt-6 w-full">
                 <button 
                   type="button" 
                   onClick={() => setIsModalOpen(false)} 
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-400 hover:text-white transition-colors cursor-pointer"
+                  className="flex-1 w-full py-3 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-xs sm:text-sm transition-all cursor-pointer text-center shadow-md"
                 >
                   {t('admin_cancel')}
                 </button>
                 <button 
                   type="submit" 
                   disabled={saving}
-                  className="bg-[#FF0000] hover:bg-[#e60000] text-white font-semibold text-xs px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                  className="flex-1 w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs sm:text-sm transition-all cursor-pointer text-center shadow-md disabled:opacity-50"
                 >
-                  {saving ? 'Salvando...' : editingUser ? 'Salvar Alterações' : t('admin_add_user')}
+                  {saving ? 'Salvando...' : editingUser ? 'Salvar Usuário' : 'Criar Usuário'}
                 </button>
               </div>
             </form>

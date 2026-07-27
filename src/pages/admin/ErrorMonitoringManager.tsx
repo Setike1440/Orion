@@ -1,10 +1,22 @@
 import React, { useState } from 'react';
 import { useSiteSettings } from '../../contexts/SiteSettingsContext';
-import { AlertTriangle, CheckCircle2, Trash2, Filter, Info, Bug } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Trash2, Filter, Info, Bug, RotateCw } from 'lucide-react';
+import { AdminToast } from '../../components/admin/AdminModal';
 
 export const ErrorMonitoringManager = () => {
   const { errorLogs, resolveError, clearErrorLogs } = useSiteSettings();
   const [filterType, setFilterType] = useState<string>('all');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const handleResolve = (id: string) => {
+    resolveError(id);
+    setToastMessage('Erro marcado como resolvido!');
+  };
+
+  const handleClearAll = () => {
+    clearErrorLogs();
+    setToastMessage('Todos os logs de erros foram limpos com sucesso!');
+  };
 
   const filteredLogs = errorLogs.filter(log => {
     if (filterType === 'all') return true;
@@ -13,6 +25,8 @@ export const ErrorMonitoringManager = () => {
 
   return (
     <div className="space-y-6">
+      <AdminToast message={toastMessage} type="success" onClose={() => setToastMessage(null)} />
+
       <div className="flex items-center justify-between pb-4 border-b border-[#1f212a]">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
@@ -24,15 +38,26 @@ export const ErrorMonitoringManager = () => {
           </p>
         </div>
 
-        {errorLogs.length > 0 && (
+        <div className="flex items-center gap-2 shrink-0">
           <button
-            onClick={clearErrorLogs}
-            className="bg-[#0d0e12] border border-[#20222c] hover:bg-[#FF0000]/10 hover:border-[#FF0000]/30 text-[#FF0000] font-semibold text-xs px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+            type="button"
+            onClick={() => setToastMessage('Logs de erros atualizados com sucesso!')}
+            className="bg-[#121318] border border-[#20222c] hover:border-[#3a3d52] hover:bg-[#1a1c26] text-gray-300 hover:text-white font-semibold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm"
           >
-            <Trash2 className="w-3.5 h-3.5 text-[#FF0000]" />
-            <span>Limpar Erros</span>
+            <RotateCw className="w-4 h-4 text-[#FF0000]" />
+            <span>Atualizar</span>
           </button>
-        )}
+
+          {errorLogs.length > 0 && (
+            <button
+              onClick={handleClearAll}
+              className="bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 font-semibold text-xs px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-red-400" />
+              <span>Limpar Erros</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Filter Tabs */}
@@ -99,7 +124,7 @@ export const ErrorMonitoringManager = () => {
                   <td className="px-6 py-4 text-right">
                     {log.status === 'pending' ? (
                       <button
-                        onClick={() => resolveError(log.id)}
+                        onClick={() => handleResolve(log.id)}
                         className="p-1.5 bg-[#181920] border border-[#20222c] hover:bg-emerald-500/10 hover:border-emerald-500/30 text-gray-400 hover:text-emerald-400 rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1 text-[11px]"
                         title="Marcar como resolvido"
                       >

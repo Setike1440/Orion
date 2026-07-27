@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Gamepad2, Users, ScrollText, TrendingUp, BellRing, Send } from 'lucide-react';
+import { Gamepad2, Users, ScrollText, TrendingUp, BellRing, Send, RotateCw } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { AdminToast } from '../../components/admin/AdminModal';
 import { usePageTitle } from '../../hooks/usePageTitle';
@@ -71,7 +71,21 @@ export const DashboardHome = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white mb-8">{t('admin_overview')}</h1>
+      <div className="flex items-center justify-between gap-4 mb-8">
+        <h1 className="text-2xl font-bold text-white">{t('admin_overview')}</h1>
+        <button 
+          type="button"
+          onClick={() => {
+            fetchStats();
+            setToastMessage('Visão geral atualizada com sucesso!');
+            setToastType('success');
+          }}
+          className="bg-[#121318] border border-[#20222c] hover:border-[#3a3d52] hover:bg-[#1a1c26] text-gray-300 hover:text-white font-semibold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+        >
+          <RotateCw className="w-4 h-4 text-[#FF0000]" />
+          <span>Atualizar</span>
+        </button>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {statCards.map((stat, index) => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Database, Server, RefreshCw, CheckCircle2, Code2, Copy, Check, ExternalLink, Table, Terminal, ArrowUpRight } from 'lucide-react';
+import { Database, Server, RefreshCw, CheckCircle2, Code2, Copy, Check, ExternalLink, Table, Terminal, ArrowUpRight, RotateCw } from 'lucide-react';
+import { AdminToast } from '../../components/admin/AdminModal';
 
 export const DatabaseManager = () => {
   const [showSqlModal, setShowSqlModal] = useState(false);
@@ -279,14 +280,19 @@ CREATE POLICY "Permitir gerenciamento de sessões ativas" ON public.active_sessi
 CREATE POLICY "Permitir gerenciamento de page_views" ON public.page_views FOR ALL USING (true) WITH CHECK (true);
 `;
 
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
   const handleCopySql = () => {
     navigator.clipboard.writeText(sqlScript);
     setCopied(true);
+    setToastMessage('Script SQL copiado com sucesso para a área de transferência!');
     setTimeout(() => setCopied(false), 2500);
   };
 
   return (
     <div className="space-y-6">
+      <AdminToast message={toastMessage} type="success" onClose={() => setToastMessage(null)} />
+
       <div className="flex items-center justify-between pb-4 border-b border-[#1f212a]">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
@@ -298,13 +304,28 @@ CREATE POLICY "Permitir gerenciamento de page_views" ON public.page_views FOR AL
           </p>
         </div>
 
-        <button
-          onClick={() => setShowSqlModal(true)}
-          className="bg-[#FF0000] hover:bg-[#e60000] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-lg"
-        >
-          <Code2 className="w-4 h-4" />
-          <span>Ver Script SQL Supabase</span>
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              fetchStats();
+              fetchTableSample(selectedTable);
+              setToastMessage('Dados do banco atualizados com sucesso!');
+            }}
+            className="bg-[#121318] border border-[#20222c] hover:border-[#3a3d52] hover:bg-[#1a1c26] text-gray-300 hover:text-white font-semibold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+          >
+            <RotateCw className="w-4 h-4 text-[#FF0000]" />
+            <span>Atualizar</span>
+          </button>
+
+          <button
+            onClick={() => setShowSqlModal(true)}
+            className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 font-semibold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+          >
+            <Code2 className="w-4 h-4 text-emerald-400" />
+            <span>Ver Script SQL Supabase</span>
+          </button>
+        </div>
       </div>
 
       {optimized && (
@@ -407,7 +428,7 @@ CREATE POLICY "Permitir gerenciamento de page_views" ON public.page_views FOR AL
                     href="https://supabase.com/dashboard"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#FF0000] hover:underline flex items-center gap-1"
+                    className="text-[#FF0000] font-sans underline hover:no-underline flex items-center gap-1"
                   >
                     Editar no Supabase <ArrowUpRight className="w-3 h-3" />
                   </a>

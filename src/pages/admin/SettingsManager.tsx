@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useSiteSettings } from '../../contexts/SiteSettingsContext';
-import { Settings, Save, Globe, Share2, Palette, Search, CheckCircle2 } from 'lucide-react';
+import { Settings, Save, Globe, Share2, Search } from 'lucide-react';
+import { AdminToast } from '../../components/admin/AdminModal';
 
 export const SettingsManager = () => {
   const { settings, updateSettings } = useSiteSettings();
   const [formData, setFormData] = useState({ ...settings });
-  const [saved, setSaved] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setFormData({ ...settings });
@@ -14,12 +15,13 @@ export const SettingsManager = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await updateSettings(formData);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setToastMessage('Configurações salvas e aplicadas em todo o site com sucesso!');
   };
 
   return (
     <div className="space-y-6">
+      <AdminToast message={toastMessage} type="success" onClose={() => setToastMessage(null)} />
+
       <div className="flex items-center justify-between pb-4 border-b border-[#1f212a]">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
@@ -31,13 +33,6 @@ export const SettingsManager = () => {
           </p>
         </div>
       </div>
-
-      {saved && (
-        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs sm:text-sm font-semibold flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>Configurações salvas e aplicadas em todo o site com sucesso!</span>
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Identifiers */}

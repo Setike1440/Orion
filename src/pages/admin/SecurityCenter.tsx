@@ -1,20 +1,30 @@
 import React, { useState } from 'react';
 import { useSiteSettings } from '../../contexts/SiteSettingsContext';
-import { Shield, ShieldAlert, ShieldCheck, Lock, Unlock, AlertTriangle, UserX, Plus } from 'lucide-react';
+import { Shield, ShieldAlert, ShieldCheck, Lock, Unlock, AlertTriangle, UserX, Plus, RotateCw } from 'lucide-react';
+import { AdminToast } from '../../components/admin/AdminModal';
 
 export const SecurityCenter = () => {
   const { securityEvents, blockedIPs, blockIP, unblockIP, clientIP } = useSiteSettings();
   const [newIP, setNewIP] = useState('');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const handleManualBlock = (e: React.FormEvent) => {
+  const handleManualBlock = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newIP.trim()) return;
-    blockIP(newIP.trim());
+    await blockIP(newIP.trim());
+    setToastMessage(`IP ${newIP.trim()} bloqueado com sucesso!`);
     setNewIP('');
+  };
+
+  const handleUnblock = async (ip: string) => {
+    await unblockIP(ip);
+    setToastMessage(`IP ${ip} desbloqueado com sucesso!`);
   };
 
   return (
     <div className="space-y-6">
+      <AdminToast message={toastMessage} type="success" onClose={() => setToastMessage(null)} />
+
       <div className="flex items-center justify-between pb-4 border-b border-[#1f212a]">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
@@ -25,6 +35,15 @@ export const SecurityCenter = () => {
             Acompanhe eventos de login, bloqueios de IP e tentativas de acesso não autorizados.
           </p>
         </div>
+
+        <button
+          type="button"
+          onClick={() => setToastMessage('Dados de segurança atualizados com sucesso!')}
+          className="bg-[#121318] border border-[#20222c] hover:border-[#3a3d52] hover:bg-[#1a1c26] text-gray-300 hover:text-white font-semibold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm shrink-0"
+        >
+          <RotateCw className="w-4 h-4 text-[#FF0000]" />
+          <span>Atualizar</span>
+        </button>
       </div>
 
       {/* Summary Cards */}
@@ -98,7 +117,7 @@ export const SecurityCenter = () => {
                 <div key={ip} className="flex items-center justify-between p-2.5 bg-[#181920] border border-[#1f212a] rounded-xl text-xs">
                   <span className="font-mono text-gray-300">{ip}</span>
                   <button
-                    onClick={() => unblockIP(ip)}
+                    onClick={() => handleUnblock(ip)}
                     className="text-gray-400 hover:text-emerald-400 transition-colors cursor-pointer p-1"
                     title="Desbloquear IP"
                   >

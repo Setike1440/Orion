@@ -88,6 +88,7 @@ interface SiteSettingsContextType {
     totalFavorites: number;
     totalUsers: number;
   };
+  refreshAnalytics: () => Promise<void>;
   trackPageView: (path: string) => void;
   trackGameView: (gameId: string, title: string) => void;
   runSystemCleanup: (options: { logs: boolean; errors: boolean; cache: boolean }) => Promise<number>;
@@ -184,11 +185,17 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [clientIP, setClientIP] = useState<string>('189.122.45.10');
   const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([]);
 
-  const [analytics, setAnalytics] = useState({
-    pageViews: {} as Record<string, number>,
-    gameViews: {} as Record<string, { title: string; views: number }>,
-    totalFavorites: 0,
-    totalUsers: 0,
+  const [analytics, setAnalytics] = useState(() => {
+    try {
+      const saved = localStorage.getItem('site_analytics_cache_v4');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return {
+      pageViews: {} as Record<string, number>,
+      gameViews: {} as Record<string, { title: string; views: number }>,
+      totalFavorites: 0,
+      totalUsers: 0,
+    };
   });
 
   // Detect Client IP
@@ -341,30 +348,51 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         const { data: pageData } = await supabase.from('page_views').select('path, views');
         const { data: gameData } = await supabase.from('games').select('id, title, views_count');
 
-        const pageViewsMap: Record<string, number> = {};
-        if (pageData && pageData.length > 0) {
-          pageData.forEach(p => {
-            pageViewsMap[p.path] = p.views;
-          });
-        }
+        setAnalytics(prev => {
+          const pageViewsMap: Record<string, number> = { ...prev.pageViews };
+          if (pageData && pageData.length > 0) {
+            pageData.forEach(p => {
+              if (p.path) {
+                pageViewsMap[p.path] = Math.max(p.views || 0, pageViewsMap[p.path] || 0);
+              }
+            });
+          }
 
-        const gameViewsMap: Record<string, { title: string; views: number }> = {};
-        if (gameData && gameData.length > 0) {
-          gameData.forEach(g => {
-            if ((g.views_count || 0) > 0) {
-              gameViewsMap[g.id] = { title: g.title, views: g.views_count || 0 };
-            }
-          });
-        }
+          const gameViewsMap: Record<string, { title: string; views: number }> = { ...prev.gameViews };
+          if (gameData && gameData.length > 0) {
+            gameData.forEach(g => {
+              if ((g.views_count || 0) > 0) {
+                gameViewsMap[g.id] = {
+                  title: g.title || gameViewsMap[g.id]?.title || 'Jogo',
+                  views: Math.max(g.views_count || 0, gameViewsMap[g.id]?.views || 0)
+                };
+              }
+            });
+          }
 
-        setAnalytics({
-          totalFavorites: favsCount ?? 0,
-          totalUsers: usersCount ?? 0,
-          pageViews: pageViewsMap,
-          gameViews: gameViewsMap
+          const updated = {
+            totalFavorites: Math.max(favsCount ?? 0, prev.totalFavorites),
+            totalUsers: Math.max(usersCount ?? 0, prev.totalUsers),
+            pageViews: pageViewsMap,
+            gameViews: gameViewsMap
+          };
+
+          try {
+            localStorage.setItem('site_analytics_cache_v4', JSON.stringify(updated));
+          } catch(e) {}
+
+          return updated;
         });
       } catch (e) {}
     };
+
+    const analyticsChannel = supabase
+      .channel('analytics_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'favorites' }, () => fetchAnalytics())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'page_views' }, () => fetchAnalytics())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'games' }, () => fetchAnalytics())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => fetchAnalytics())
+      .subscribe();
 
     fetchSiteSettings();
     fetchBlockedIPs();
@@ -372,8 +400,18 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     fetchSecurityEvents();
     fetchAnalytics();
 
+    const handleFavUpdated = () => fetchAnalytics();
+    window.addEventListener('favorites-updated', handleFavUpdated);
+
+    const analyticsInterval = setInterval(() => {
+      fetchAnalytics();
+    }, 3000);
+
     return () => {
       supabase.removeChannel(settingsChannel);
+      supabase.removeChannel(analyticsChannel);
+      window.removeEventListener('favorites-updated', handleFavUpdated);
+      clearInterval(analyticsInterval);
     };
   }, []);
 
@@ -672,35 +710,110 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     } catch (e) {}
   };
 
-  const trackPageView = async (path: string) => {
-    setAnalytics(prev => ({
-      ...prev,
-      pageViews: {
-        ...prev.pageViews,
-        [path]: (prev.pageViews[path] || 0) + 1
-      }
-    }));
-
+  const refreshAnalytics = async () => {
     try {
-      await supabase.rpc('increment_page_views', { page_path: path });
+      const { count: favsCount } = await supabase.from('favorites').select('*', { count: 'exact', head: true });
+      const { count: usersCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+      const { data: pageData } = await supabase.from('page_views').select('path, views');
+      const { data: gameData } = await supabase.from('games').select('id, title, views_count');
+
+      setAnalytics(prev => {
+        const pageViewsMap: Record<string, number> = { ...prev.pageViews };
+        if (pageData && pageData.length > 0) {
+          pageData.forEach(p => {
+            if (p.path) pageViewsMap[p.path] = Math.max(p.views || 0, pageViewsMap[p.path] || 0);
+          });
+        }
+
+        const gameViewsMap: Record<string, { title: string; views: number }> = { ...prev.gameViews };
+        if (gameData && gameData.length > 0) {
+          gameData.forEach(g => {
+            if ((g.views_count || 0) > 0) {
+              gameViewsMap[g.id] = {
+                title: g.title || gameViewsMap[g.id]?.title || 'Jogo',
+                views: Math.max(g.views_count || 0, gameViewsMap[g.id]?.views || 0)
+              };
+            }
+          });
+        }
+
+        const updated = {
+          totalFavorites: Math.max(favsCount ?? 0, prev.totalFavorites),
+          totalUsers: Math.max(usersCount ?? 0, prev.totalUsers),
+          pageViews: pageViewsMap,
+          gameViews: gameViewsMap
+        };
+
+        try {
+          localStorage.setItem('site_analytics_cache_v4', JSON.stringify(updated));
+        } catch(e) {}
+
+        return updated;
+      });
     } catch (e) {}
   };
 
-  const trackGameView = async (gameId: string, title: string) => {
-    setAnalytics(prev => ({
-      ...prev,
-      gameViews: {
-        ...prev.gameViews,
-        [gameId]: {
-          title,
-          views: ((prev.gameViews[gameId]?.views) || 0) + 1
+  const trackPageView = async (path: string) => {
+    if (!path) return;
+    setAnalytics(prev => {
+      const current = prev.pageViews[path] || 0;
+      const updated = {
+        ...prev,
+        pageViews: {
+          ...prev.pageViews,
+          [path]: current + 1
         }
-      }
-    }));
+      };
+      try {
+        localStorage.setItem('site_analytics_cache_v4', JSON.stringify(updated));
+      } catch(e) {}
+      return updated;
+    });
 
     try {
-      await supabase.rpc('increment_game_views', { game_uuid: gameId });
-    } catch (e) {}
+      const { data } = await supabase.from('page_views').select('views').eq('path', path).maybeSingle();
+      if (data) {
+        await supabase.from('page_views').update({ views: (data.views || 0) + 1 }).eq('path', path);
+      } else {
+        await supabase.from('page_views').insert([{ path, views: 1 }]);
+      }
+    } catch (e) {
+      try {
+        await supabase.rpc('increment_page_views', { page_path: path });
+      } catch (err) {}
+    }
+  };
+
+  const trackGameView = async (gameId: string, title: string) => {
+    if (!gameId) return;
+    setAnalytics(prev => {
+      const currentViews = prev.gameViews[gameId]?.views || 0;
+      const updated = {
+        ...prev,
+        gameViews: {
+          ...prev.gameViews,
+          [gameId]: {
+            title: title || prev.gameViews[gameId]?.title || 'Jogo',
+            views: currentViews + 1
+          }
+        }
+      };
+      try {
+        localStorage.setItem('site_analytics_cache_v4', JSON.stringify(updated));
+      } catch(e) {}
+      return updated;
+    });
+
+    try {
+      const { data } = await supabase.from('games').select('views_count').eq('id', gameId).maybeSingle();
+      if (data) {
+        await supabase.from('games').update({ views_count: (data.views_count || 0) + 1 }).eq('id', gameId);
+      }
+    } catch (e) {
+      try {
+        await supabase.rpc('increment_game_views', { game_uuid: gameId });
+      } catch (err) {}
+    }
   };
 
   const runSystemCleanup = async (options: { logs: boolean; errors: boolean; cache: boolean }) => {
@@ -808,6 +921,7 @@ export const SiteSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         activeSessions,
         terminateSession,
         analytics,
+        refreshAnalytics,
         trackPageView,
         trackGameView,
         runSystemCleanup,

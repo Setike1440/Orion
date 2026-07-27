@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-import { Routes, Route, Outlet } from 'react-router-dom';
+import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
-import { SiteSettingsProvider } from './contexts/SiteSettingsContext';
+import { SiteSettingsProvider, useSiteSettings } from './contexts/SiteSettingsContext';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { Home } from './pages/Home';
@@ -21,9 +21,21 @@ import { ScrollToTop } from './components/ScrollToTop';
 import { AnnouncementBar } from './components/AnnouncementBar';
 import { MaintenanceGuard } from './components/MaintenanceGuard';
 
+const RouteTracker = () => {
+  const location = useLocation();
+  const { trackPageView } = useSiteSettings();
+
+  useEffect(() => {
+    trackPageView(location.pathname);
+  }, [location.pathname]);
+
+  return null;
+};
+
 const Layout = () => {
   return (
     <MaintenanceGuard>
+      <RouteTracker />
       <div className="flex flex-col min-h-screen bg-[#000000] text-[#e5e7eb]">
         <AnnouncementBar />
         <ScrollToTop />

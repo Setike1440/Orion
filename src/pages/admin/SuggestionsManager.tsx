@@ -202,9 +202,9 @@ CREATE POLICY "Permitir atualização e exclusão" ON public.game_suggestions FO
           <button
             type="button"
             onClick={() => setShowSqlModal(!showSqlModal)}
-            className="bg-[#0d0e12] border border-[#20222c] hover:bg-[#1a1c26] hover:border-[#3a3d52] text-[#FF0000] hover:text-red-400 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-sm"
+            className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-sm"
           >
-            <Code2 className="w-3.5 h-3.5" />
+            <Code2 className="w-3.5 h-3.5 text-emerald-400" />
             <span>Script SQL</span>
           </button>
         </div>

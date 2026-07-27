@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage, getCategoryTranslation } from '../contexts/LanguageContext';
+import { useSiteSettings } from '../contexts/SiteSettingsContext';
 import { ShieldCheck, Download, Lock, Key, Copy, CheckCircle2, ArrowLeft, Heart, MonitorCheck, Headphones, HelpCircle, User, Cpu, HardDrive, Monitor, Tv, MemoryStick, Layers } from 'lucide-react';
 import { Skeleton } from '../components/Skeleton';
 import { GameCard, Game } from '../components/GameCard';
@@ -14,6 +15,7 @@ export const GameDetails = () => {
   const navigate = useNavigate();
   const { user, openAuthModal } = useAuth();
   const { t } = useLanguage();
+  const { trackGameView } = useSiteSettings();
   const [game, setGame] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [relatedGames, setRelatedGames] = useState<Game[]>([]);
@@ -73,6 +75,9 @@ export const GameDetails = () => {
         if (c) gameData.category = { name: c.name, slug: c.slug };
       }
       setGame(gameData);
+      if (gameData?.id) {
+        trackGameView(gameData.id, gameData.title);
+      }
 
       // Preload images for maximum speed
       if (gameData.cover_url) {

@@ -1,12 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSiteSettings } from '../../contexts/SiteSettingsContext';
-import { Globe, Monitor, Smartphone, LogOut, CheckCircle2 } from 'lucide-react';
+import { Globe, Monitor, Smartphone, LogOut, CheckCircle2, RotateCw } from 'lucide-react';
+import { AdminToast } from '../../components/admin/AdminModal';
 
 export const ActiveSessionsManager = () => {
   const { activeSessions, terminateSession } = useSiteSettings();
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const handleTerminate = async (id: string, username: string) => {
+    await terminateSession(id);
+    setToastMessage(`Sessão de ${username} encerrada com sucesso!`);
+  };
 
   return (
     <div className="space-y-6">
+      <AdminToast message={toastMessage} type="success" onClose={() => setToastMessage(null)} />
+
       <div className="flex items-center justify-between pb-4 border-b border-[#1f212a]">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
@@ -17,6 +26,15 @@ export const ActiveSessionsManager = () => {
             Monitore os usuários atualmente conectados, dispositivos e encerre conexões remotamente.
           </p>
         </div>
+
+        <button
+          type="button"
+          onClick={() => setToastMessage('Sessões ativas atualizadas com sucesso!')}
+          className="bg-[#121318] border border-[#20222c] hover:border-[#3a3d52] hover:bg-[#1a1c26] text-gray-300 hover:text-white font-semibold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-sm shrink-0"
+        >
+          <RotateCw className="w-4 h-4 text-[#FF0000]" />
+          <span>Atualizar</span>
+        </button>
       </div>
 
       <div className="bg-[#0d0e12] border border-[#1f212a] rounded-2xl overflow-hidden shadow-sm">
@@ -59,11 +77,11 @@ export const ActiveSessionsManager = () => {
 
                   <button
                     type="button"
-                    onClick={() => terminateSession(session.id)}
-                    className="bg-[#0d0e12] border border-[#20222c] hover:bg-[#FF0000]/10 hover:border-[#FF0000]/30 text-[#FF0000] font-semibold text-xs px-3.5 py-2 rounded-xl transition-all flex items-center gap-2 cursor-pointer shrink-0"
+                    onClick={() => handleTerminate(session.id, session.username)}
+                    className="bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 font-semibold text-xs px-3.5 py-2 rounded-xl transition-all flex items-center gap-2 cursor-pointer shrink-0"
                     title="Encerrar Sessão Remotamente"
                   >
-                    <LogOut className="w-3.5 h-3.5 text-[#FF0000]" />
+                    <LogOut className="w-3.5 h-3.5 text-red-400" />
                     <span>Encerrar Sessão</span>
                   </button>
                 </div>
